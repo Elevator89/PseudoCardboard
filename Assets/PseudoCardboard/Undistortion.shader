@@ -8,6 +8,7 @@ Shader "Unlit/Undistortion"
 		// we have removed support for texture tiling/offset,
 		// so make them not be displayed in material inspector
 		[NoScaleOffset] _MainTex("Texture", 2D) = "white" {}
+		_DistortionParams("DistortionParams", Vector) = (-0.032, 0.0, 0.51, 0.16)
 	}
 	SubShader
 	{
@@ -18,6 +19,7 @@ Shader "Unlit/Undistortion"
 	#pragma vertex vert
 			// use "frag" function as the pixel (fragment) shader
 	#pragma fragment frag
+	#include "UnityCG.cginc"
 
 			// vertex shader inputs
 			struct appdata
@@ -33,14 +35,26 @@ Shader "Unlit/Undistortion"
 				float4 vertex : SV_POSITION; // clip space position
 			};
 
+			// Convert point from world space to undistorted camera space.
+			float3 undistort(float3 viewPos, float2 _center, float k1, float k2)
+			{
+				float2 rad = viewPos.xy - _center;
+				float r2 = dot(rad, rad);
+
+				viewPos.xy += rad * (k1 + k2 * r2) * r2;
+				return viewPos;
+			}
+
+			float4 _DistortionParams;
+
 			// vertex shader
 			v2f vert(appdata v)
 			{
 				v2f o;
 				// transform position to clip space
 				// (multiply with model*view*projection matrix)
-				o.vertex = UnityObjectToClipPos(v.vertex);
 
+				o.vertex = UnityViewToClipPos(undistort(UnityObjectToViewPos(v.vertex), _DistortionParams.xy, -_DistortionParams.z * 100, -_DistortionParams.w * 100));
 
 				// just pass the texture coordinate
 				o.uv = v.uv;
@@ -49,8 +63,6 @@ Shader "Unlit/Undistortion"
 
 			// texture we will sample
 			sampler2D _MainTex;
-			float _K1;
-			float _K2;
 
 			// pixel shader; returns low precision ("fixed4" type)
 			// color ("SV_Target" semantic)

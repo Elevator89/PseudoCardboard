@@ -22,5 +22,5 @@ Material:
         m_Texture: {fileID: 8400000, guid: 8172a4ae9f02b0642b647c3be5fd1aea, type: 2}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    m_Floats: []
-    m_Colors: []
+    m_Colors:
+    - _DistortionParams: {r: 0.032, g: 0, b: 0.51, a: 0.16}
