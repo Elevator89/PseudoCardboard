@@ -54,6 +54,7 @@ GameObject:
   - component: {fileID: 20841549535713884}
   - component: {fileID: 81722533844268194}
   - component: {fileID: 114862379240691182}
+  - component: {fileID: 114721178968378846}
   m_Layer: 0
   m_Name: PivotCamera
   m_TagString: MainCamera
@@ -117,7 +118,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1942576135912560}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.0325, y: 0, z: 0}
+  m_LocalPosition: {x: -0.05, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4823811756056214}
@@ -145,7 +146,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1198176273825028}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.0325, y: 0, z: 0}
+  m_LocalPosition: {x: 0.05, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4823811756056214}
@@ -295,6 +296,20 @@ AudioListener:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1382135055251830}
   m_Enabled: 1
+--- !u!114 &114721178968378846
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1382135055251830}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -768656878, guid: f70555f144d8491a825f0804e09c671c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_EventMask:
+    serializedVersion: 2
+    m_Bits: 4294967033
 --- !u!114 &114862379240691182
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -309,9 +324,9 @@ MonoBehaviour:
   HmdParameters:
     DistortionK1: 0.51
     DistortionK2: 0.16
-    InterlensDistance: 0.065
-    ScreenToLensDist: 0.045
-    EyeOffsetY: 0.035
+    InterlensDistance: 0.1
+    ScreenToLensDist: 0.12
+    EyeOffsetY: 0.08
   EyeMaterial: {fileID: 2100000, guid: 5c6e01ba44f36fa4d81090d21b859050, type: 2}
   RenderTexture: {fileID: 8400000, guid: 93011ab5ee0761d4687f9dd4ba2b03c6, type: 2}
 --- !u!114 &114912101149781404

@@ -37,10 +37,7 @@ Shader "Unlit/DistortionTex"
 			int _ShowCenter;
 
 			float poly(float val) {
-				return 
-					val < 0.00005 
-						? 10000.0 
-						: 1.0 + (_DistortionK1 + _DistortionK2 * val) * val;
+				return 1.0 + (_DistortionK1 + _DistortionK2 * val) * val;
 			}
 
 			float2 barrel(float2 v, float4 projection, float4 unprojection) {
