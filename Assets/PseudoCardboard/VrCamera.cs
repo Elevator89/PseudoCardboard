@@ -9,7 +9,9 @@ namespace Assets.PseudoCardboard
 		const float MetersPerInch = 0.0254f;
 
 		public HmdParameters HmdParameters;
+		public Transform ScreenPlane;
 		public Material EyeMaterial;
+		public RenderTexture RenderTexture;
 
 		private Camera _centralCam;
 		private Camera _leftEyeCam;
@@ -57,6 +59,9 @@ namespace Assets.PseudoCardboard
 
 			_leftEyeCam.projectionMatrix = projLeft;
 			_rightEyeCam.projectionMatrix = projRight;
+
+			Vector3 scale = new Vector3(2f * _centralCam.orthographicSize * _centralCam.aspect, 2f * _centralCam.orthographicSize, 1f);
+			ScreenPlane.localScale = scale;
 
 			UpdateBarrelDistortion(EyeMaterial, viewportNoLensLeft, noLensFov, projLeft, projNoLensLeft);
 		}

@@ -89,7 +89,7 @@ GameObject:
   - component: {fileID: 136325525201731856}
   - component: {fileID: 114096218626252034}
   m_Layer: 0
-  m_Name: PseudoCardboardRig
+  m_Name: PseudoCardboardRigMesh
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
