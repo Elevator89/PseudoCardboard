@@ -1,7 +1,7 @@
 ﻿// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
 // Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
 
-Shader "Unlit/Undistortion"
+Shader "Unlit/DistortionMesh"
 {
 	Properties
 	{
@@ -45,17 +45,8 @@ Shader "Unlit/Undistortion"
 
 			float distortionFactor(float radius)
 			{
-				float result = 1.0;
-				float rFactor = 1.0;
 				float rSquared = radius * radius;
-
-				rFactor *= rSquared;
-				result += _DistortionK1 * rFactor;
-
-				rFactor *= rSquared;
-				result += _DistortionK2 * rFactor;
-
-				return result;
+				return 1 + _DistortionK1 * rSquared + _DistortionK2 * rSquared * rSquared;
 			}
 
 			float distort(float radius)
@@ -67,11 +58,11 @@ Shader "Unlit/Undistortion"
 			{
 				float2 center = { _EyeCenterOffsetX, 0.0 };
 				float2 radiusV = viewPos.xy - center;
-				float radius = length(radiusV) / _ScreenToLensDist;
+				
+				float radiusTan = length(radiusV) / _ScreenToLensDist;
+				float radiusTanUndist = distort(radiusTan);
 
-				float radiusUndist = distort(radius);
-
-				viewPos.xy = center + radiusV * radius / radiusUndist;
+				viewPos.xy = center + radiusV / distortionFactor(radiusTan);
 				return viewPos;
 			}
 
@@ -86,7 +77,7 @@ Shader "Unlit/Undistortion"
 
 				// just pass the texture coordinate
 				o.uv = v.uv;
-				return o;
+				return o; 
 			}
 
 			// texture we will sample
