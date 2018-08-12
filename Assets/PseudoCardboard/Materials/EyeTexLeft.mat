@@ -24,12 +24,12 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - _DistortionK1: 0.51
-    - _DistortionK2: -0.16
+    - _DistortionK2: 0.16
     - _EyeCenterOffsetX: -0.032
     - _ScreenToLensDist: 0.045
     m_Colors:
     - _BackgroundColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.5}
     - _DistortionParams: {r: -0.032, g: 0, b: 0.51, a: 0.16}
     - _DividerColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.5}
-    - _ProjectionLeft: {r: 0.5, g: 0.5, b: 0.5, a: 0.5}
-    - _UnprojectionLeft: {r: 0.5, g: 0.5, b: 0.5, a: 0.5}
+    - _ProjectionLeft: {r: 0.4678276, g: 0.44345298, b: -0.55753523, a: -0.4715133}
+    - _UnprojectionLeft: {r: 0.35626385, g: 0.27660638, b: -0.7575208, a: -0.2056476}
