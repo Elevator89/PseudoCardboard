@@ -4,7 +4,13 @@ namespace Assets.Scripts.Control.Rotation
 {
 	public abstract class BaseInstantRotator : IInstantRotator
 	{
-		public float RotationStep { get; set; } = 22.5f;
+		private float _rotationStep = 22.5f;
+		public float RotationStep
+		{
+			get { return _rotationStep; }
+			set { _rotationStep = value; }
+		}
+
 		private bool _canRotate = false;
 
 		public void UpdateRotation(Transform transform)

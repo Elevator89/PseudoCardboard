@@ -14,7 +14,8 @@ namespace Assets.Scripts.Control
 
 		private readonly MainButtonHoldState _holdState = new MainButtonHoldState();
 
-		protected override IInstantRotator InstantRotator { get; } = new AxisInstantRotator("Horizontal");
+		private IInstantRotator _instantRotator = new AxisInstantRotator("Horizontal");
+		protected override IInstantRotator InstantRotator { get { return _instantRotator; } }
 
 		protected override void UpdateCameraRotation(Transform cam)
 		{

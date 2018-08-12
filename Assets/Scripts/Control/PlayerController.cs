@@ -72,7 +72,8 @@ namespace Assets.Scripts.Control
 
 		protected virtual void UpdateRootRotation(Transform root)
 		{
-			InstantRotator?.UpdateRotation(root);
+			if (InstantRotator != null)
+				InstantRotator.UpdateRotation(root);
 		}
 
 		// These methods are usually not needed in controllers for VR
