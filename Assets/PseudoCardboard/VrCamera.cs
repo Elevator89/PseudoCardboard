@@ -19,7 +19,7 @@ namespace Assets.PseudoCardboard
 
 		private Distortion _distortion;
 
-		void Awake()
+		void OnEnable()
 		{
 			_centralCam = GetComponent<Camera>();
 
