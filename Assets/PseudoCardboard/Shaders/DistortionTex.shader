@@ -37,7 +37,11 @@ Shader "Unlit/DistortionTex"
 			int _ShowCenter;
 
 			float poly(float val) {
-				return 1.0 + (_DistortionK1 + _DistortionK2 * val) * val;
+				return 
+					(val < 0.0005)
+						? 10000.0 
+						: 1.0 + (_DistortionK1 + _DistortionK2 * val) * val;
+				//return 1.0 + (_DistortionK1 + _DistortionK2 * val) * val;
 			}
 
 			float2 barrel(float2 v, float4 projection, float4 unprojection) {
@@ -57,8 +61,8 @@ Shader "Unlit/DistortionTex"
 				float4 unprojectionRight = (_UnprojectionLeft + float4(0.0, 0.0, 1.0, 0.0)) * float4(1.0, 1.0, -1.0, 1.0);
 
 				float2 a = (i.uv.x < 0.5) ?
-					barrel(float2(i.uv.x / 0.5, i.uv.y), _ProjectionLeft, _UnprojectionLeft) :
-					barrel(float2((i.uv.x - 0.5) / 0.5, i.uv.y), projectionRight, unprojectionRight);
+					barrel(float2(2 * i.uv.x, i.uv.y), _ProjectionLeft, _UnprojectionLeft) :
+					barrel(float2(2 * (i.uv.x - 0.5), i.uv.y), projectionRight, unprojectionRight);
 
 				if (_DividerColor.w > 0.0 && abs(i.uv.x - 0.5) < .001) {
 					return _DividerColor;

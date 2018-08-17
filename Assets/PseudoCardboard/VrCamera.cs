@@ -60,12 +60,12 @@ namespace Assets.PseudoCardboard
 			_leftEyeCam.projectionMatrix = projLeft;
 			_rightEyeCam.projectionMatrix = projRight;
 
-			UpdateBarrelDistortion(EyeMaterial, viewportNoLensLeft, noLensFov, projLeft, projNoLensLeft);
+			UpdateBarrelDistortion(EyeMaterial, viewportNoLensLeft, projLeft, projNoLensLeft);
 			Graphics.Blit(RenderTexture, destination, EyeMaterial);
 		}
 
 		// Set barrel_distortion parameters given CardboardView.
-		private void UpdateBarrelDistortion(Material distortionTex, Rect viewport, FovAngles fov, Matrix4x4 projLeft, Matrix4x4 projNoLensLeft)
+		private void UpdateBarrelDistortion(Material distortionTex, Rect viewport, Matrix4x4 projLeft, Matrix4x4 projNoLensLeft)
 		{
 			// Shader params include parts of the projection matrices needed to
 			// convert texture coordinates between distorted and undistorted
