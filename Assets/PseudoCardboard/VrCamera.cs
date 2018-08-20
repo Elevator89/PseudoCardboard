@@ -52,6 +52,10 @@ namespace Assets.PseudoCardboard
 			Matrix4x4 projNoLensLeft;
 			Matrix4x4 projNoLensRight;
 			FovAngles noLensFov = GetLeftEyeFovAndViewportNoDistortionCorrection(screenWidthMeters, screenHeightMeters, out viewportNoLensLeft);
+
+			Debug.LogFormat("l={0:0.00}; r={1:0.00}; t={2:0.00}; b={3:0.00}", projFov.Left, projFov.Right, projFov.Top, projFov.Bottom);
+
+
 			ComposeProjectionMatrices(noLensFov, _leftEyeCam.nearClipPlane, _leftEyeCam.farClipPlane, out projNoLensLeft, out projNoLensRight);
 
 			_leftEyeCam.transform.localPosition = 0.5f * Vector3.left * HmdParameters.InterlensDistance;
@@ -111,10 +115,10 @@ namespace Assets.PseudoCardboard
 			float bottomDist = HmdParameters.EyeOffsetY;
 			float topDist = screenHeightMeters - bottomDist;
 
-			float outerAngle = Mathf.Rad2Deg * Mathf.Atan(_distortion.DistortRadius(outerDist / eyeToScreenDist));
-			float innerAngle = Mathf.Rad2Deg * Mathf.Atan(_distortion.DistortRadius(innerDist / eyeToScreenDist));
-			float bottomAngle = Mathf.Rad2Deg * Mathf.Atan(_distortion.DistortRadius(bottomDist / eyeToScreenDist));
-			float topAngle = Mathf.Rad2Deg * Mathf.Atan(_distortion.DistortRadius(topDist / eyeToScreenDist));
+			float outerAngle = Mathf.Rad2Deg * Mathf.Atan(_distortion.DistortTanAngle(outerDist / eyeToScreenDist));
+			float innerAngle = Mathf.Rad2Deg * Mathf.Atan(_distortion.DistortTanAngle(innerDist / eyeToScreenDist));
+			float bottomAngle = Mathf.Rad2Deg * Mathf.Atan(_distortion.DistortTanAngle(bottomDist / eyeToScreenDist));
+			float topAngle = Mathf.Rad2Deg * Mathf.Atan(_distortion.DistortTanAngle(topDist / eyeToScreenDist));
 
 			return new FovAngles
 			{
@@ -130,35 +134,41 @@ namespace Assets.PseudoCardboard
 			// The screen-to-lens distance can be used as a rough approximation
 			// of the virtual-eye-to-screen distance.
 			float eyeToScreenDist = HmdParameters.ScreenToLensDist;
-			float halfLensDistance = HmdParameters.InterlensDistance / 2 / eyeToScreenDist;
-			float screenWidth = screenWidthMeters / eyeToScreenDist;
-			float screenHeight = screenHeightMeters / eyeToScreenDist;
-			float xPxPerTanAngle = Display.main.renderingWidth / screenWidth;
-			float yPxPerTanAngle = Display.main.renderingHeight / screenHeight;
+			float halfLensDistanceTan = 0.5f * HmdParameters.InterlensDistance / eyeToScreenDist;
+			float screenWidthTan = screenWidthMeters / eyeToScreenDist;
+			float screenHeightTan = screenHeightMeters / eyeToScreenDist;
+			float xPxPerTanAngle = Display.main.renderingWidth / screenWidthTan;
+			float yPxPerTanAngle = Display.main.renderingHeight / screenHeightTan;
 
-			float eyePosX = screenWidth / 2 - halfLensDistance;
-			float eyePosY = HmdParameters.EyeOffsetY / eyeToScreenDist;
+			float eyePosXTan = 0.5f * screenWidthTan - halfLensDistanceTan;
+			float eyePosYTan = HmdParameters.EyeOffsetY / eyeToScreenDist;
 
-			float outerDist = Mathf.Min(eyePosX, _distortion.DistortInverse(Mathf.Tan(Mathf.Deg2Rad * HmdParameters.MaxFovAngles.Left)));
-			float innerDist = Mathf.Min(halfLensDistance, _distortion.DistortInverse(Mathf.Tan(Mathf.Deg2Rad * HmdParameters.MaxFovAngles.Right)));
-			float bottomDist = Mathf.Min(eyePosY, _distortion.DistortInverse(Mathf.Tan(Mathf.Deg2Rad * HmdParameters.MaxFovAngles.Bottom)));
-			float topDist = Mathf.Min(screenHeight - eyePosY, _distortion.DistortInverse(Mathf.Tan(Mathf.Deg2Rad * HmdParameters.MaxFovAngles.Top)));
 
-			float x = Mathf.Round((eyePosX - outerDist) * xPxPerTanAngle);
-			float y = Mathf.Round((eyePosY - bottomDist) * yPxPerTanAngle);
+			float tanAngle = Mathf.Tan(Mathf.Deg2Rad * HmdParameters.MaxFovAngles.Right);
+			float distortedTanAngle = _distortion.DistortTanAngle(tanAngle);
+			float undistortedTanAngle = _distortion.UndistortTanAngle(distortedTanAngle);
 
-			viewport = new Rect(
-				x,
-				y,
-				Mathf.Round((eyePosX + innerDist) * xPxPerTanAngle) - x,
-				Mathf.Round((eyePosY + topDist) * yPxPerTanAngle) - y);
+
+			float outerDistTan = Mathf.Min(eyePosXTan, _distortion.UndistortTanAngle(Mathf.Tan(Mathf.Deg2Rad * HmdParameters.MaxFovAngles.Left)));
+			float innerDistTan = Mathf.Min(halfLensDistanceTan, _distortion.UndistortTanAngle(Mathf.Tan(Mathf.Deg2Rad * HmdParameters.MaxFovAngles.Right)));
+			float bottomDistTan = Mathf.Min(eyePosYTan, _distortion.UndistortTanAngle(Mathf.Tan(Mathf.Deg2Rad * HmdParameters.MaxFovAngles.Bottom)));
+			float topDistTan = Mathf.Min(screenHeightTan - eyePosYTan, _distortion.UndistortTanAngle(Mathf.Tan(Mathf.Deg2Rad * HmdParameters.MaxFovAngles.Top)));
+
+			float x = Mathf.Round((eyePosXTan - outerDistTan) * xPxPerTanAngle);
+			float y = Mathf.Round((eyePosYTan - bottomDistTan) * yPxPerTanAngle);
+			float w = Mathf.Round((eyePosXTan + innerDistTan) * xPxPerTanAngle) - x;
+			float h = Mathf.Round((eyePosYTan + topDistTan) * yPxPerTanAngle) - y;
+
+			viewport = new Rect(x, y, w, h);
+
+			Debug.LogFormat("x={0:0.00}; y={1:0.00}; w={2:0.00}; h={3:0.00}", x, y, w, h);
 
 			return new FovAngles
 			{
-				Left = Mathf.Rad2Deg * Mathf.Atan(outerDist),
-				Right = Mathf.Rad2Deg * Mathf.Atan(innerDist),
-				Bottom = Mathf.Rad2Deg * Mathf.Atan(bottomDist),
-				Top = Mathf.Rad2Deg * Mathf.Atan(topDist),
+				Left = Mathf.Rad2Deg * Mathf.Atan(outerDistTan),
+				Right = Mathf.Rad2Deg * Mathf.Atan(innerDistTan),
+				Bottom = Mathf.Rad2Deg * Mathf.Atan(bottomDistTan),
+				Top = Mathf.Rad2Deg * Mathf.Atan(topDistTan),
 			};
 		}
 

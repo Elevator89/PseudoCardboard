@@ -13,27 +13,30 @@ namespace Assets.PseudoCardboard
 			DistortionK2 = distortionK2;
 		}
 
-		public float DistortInverse(float radius)
+		public float UndistortTanAngle(float tanAngle)
 		{
-			float r0 = radius / 0.9f;
-			float r1 = radius * 0.9f;
+			float r0 = tanAngle * 0.9f;
+			float r1 = tanAngle / 0.9f;
 			float r2;
-			float dr0 = radius - DistortRadius(r0);
-			float dr1;
-			while (Mathf.Abs(r1 - r0) > 0.0001f)
+			float _dr1 = DistortTanAngle(r1);
+			float dr1 = tanAngle - DistortTanAngle(r1);
+			float _dr0;
+			float dr0;
+			while (Mathf.Abs(r0 - r1) > 0.0001f)
 			{
-				dr1 = radius - DistortRadius(r1);
-				r2 = r1 - dr1 * ((r1 - r0) / (dr1 - dr0));
-				r0 = r1;
-				r1 = r2;
-				dr0 = dr1;
+				_dr0 = DistortTanAngle(r0);
+				dr0 = tanAngle - DistortTanAngle(r0);
+				r2 = r0 - dr0 * ((r0 - r1) / (dr0 - dr1));
+				r1 = r0;
+				r0 = r2;
+				dr1 = dr0;
 			}
-			return r1;
+			return r0;
 		}
 
-		public float DistortRadius(float radius)
+		public float DistortTanAngle(float tanAngle)
 		{
-			return radius * GetDistortionFactor(radius);
+			return tanAngle * GetDistortionFactor(tanAngle);
 		}
 
 		float GetDistortionFactor(float radius)

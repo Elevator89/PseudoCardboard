@@ -1,13 +1,18 @@
 ﻿using System;
+using UnityEngine;
 
 namespace Assets.PseudoCardboard
 {
 	[Serializable]
 	public class FovAngles
 	{
-		public float Left { get; set; }
-		public float Right { get; set; }
-		public float Top { get; set; }
-		public float Bottom { get; set; }
+		[Range(0f, 90f)]
+		public float Left;
+		[Range(0f, 90f)]
+		public float Right;
+		[Range(0f, 90f)]
+		public float Top;
+		[Range(0f, 90f)]
+		public float Bottom;
 	}
 }
