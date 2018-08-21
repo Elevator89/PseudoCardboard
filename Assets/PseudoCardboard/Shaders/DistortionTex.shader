@@ -49,6 +49,11 @@ Shader "Unlit/DistortionTex"
 				return projection.xy * (poly(dot(w, w)) * w) - projection.zw;
 			}
 
+			float2 direct(float2 v, float4 projection, float4 unprojection) {
+				float2 w = (v + unprojection.zw) / unprojection.xy;
+				return projection.xy * w - projection.zw;
+			}
+
 			// texture we will sample
 			sampler2D _MainTex;
 
@@ -60,9 +65,14 @@ Shader "Unlit/DistortionTex"
 				float4 projectionRight = (_ProjectionLeft + float4(0.0, 0.0, 1.0, 0.0)) * float4(1.0, 1.0, -1.0, 1.0);
 				float4 unprojectionRight = (_UnprojectionLeft + float4(0.0, 0.0, 1.0, 0.0)) * float4(1.0, 1.0, -1.0, 1.0);
 
+				//float2 a = (i.uv.x < 0.5) ?
+				//	barrel(float2(2 * i.uv.x, i.uv.y), _ProjectionLeft, _UnprojectionLeft) :
+				//	barrel(float2(2 * (i.uv.x - 0.5), i.uv.y), projectionRight, unprojectionRight);
+
+				// sompare
 				float2 a = (i.uv.x < 0.5) ?
-					barrel(float2(2 * i.uv.x, i.uv.y), _ProjectionLeft, _UnprojectionLeft) :
-					barrel(float2(2 * (i.uv.x - 0.5), i.uv.y), projectionRight, unprojectionRight);
+					direct(float2(2 * i.uv.x, i.uv.y), _ProjectionLeft, _UnprojectionLeft) :
+					float2(2 * (i.uv.x - 0.5), i.uv.y), _ProjectionLeft, _UnprojectionLeft;
 
 				if (_DividerColor.w > 0.0 && abs(i.uv.x - 0.5) < .001) {
 					return _DividerColor;
