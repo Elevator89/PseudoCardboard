@@ -118,7 +118,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1942576135912560}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.05, y: 0, z: 0}
+  m_LocalPosition: {x: -0.0325, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4823811756056214}
@@ -146,7 +146,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1198176273825028}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.05, y: 0, z: 0}
+  m_LocalPosition: {x: 0.0325, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4823811756056214}
@@ -324,9 +324,14 @@ MonoBehaviour:
   HmdParameters:
     DistortionK1: 0.51
     DistortionK2: 0.16
-    InterlensDistance: 0.1
-    ScreenToLensDist: 0.12
-    EyeOffsetY: 0.08
+    InterlensDistance: 0.065
+    ScreenToLensDist: 0.042
+    EyeOffsetY: 0.05
+    MaxFovAngles:
+      Left: 50
+      Right: 50
+      Top: 50
+      Bottom: 50
   EyeMaterial: {fileID: 2100000, guid: 5c6e01ba44f36fa4d81090d21b859050, type: 2}
   RenderTexture: {fileID: 8400000, guid: 93011ab5ee0761d4687f9dd4ba2b03c6, type: 2}
 --- !u!114 &114912101149781404

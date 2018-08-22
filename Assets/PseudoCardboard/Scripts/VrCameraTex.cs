@@ -5,7 +5,7 @@ namespace Assets.PseudoCardboard
 {
     [ExecuteInEditMode]
     [RequireComponent(typeof(Camera))]
-    public class VrCamera : MonoBehaviour
+    public class VrCameraTex : MonoBehaviour
     {
         const float MetersPerInch = 0.0254f;
 

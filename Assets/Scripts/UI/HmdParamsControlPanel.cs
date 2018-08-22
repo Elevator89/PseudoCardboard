@@ -7,7 +7,7 @@ namespace Assets.Scripts.UI
 	public class HmdParamsControlPanel : MonoBehaviour
 	{
 		[SerializeField]
-		private VrCamera VrCamera;
+		private VrCameraTex VrCamera;
 
 		[SerializeField]
 		private Slider InterlensDistanceSlider;
