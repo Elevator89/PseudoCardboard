@@ -90,8 +90,7 @@ namespace Assets.PseudoCardboard
 
             var x_scale = viewport.width / (0.5f * Display.main.renderingWidth);
             var y_scale = viewport.height / Display.main.renderingHeight;
-            //var x_trans = 2 * (viewport.x + 0.5f * viewport.width) / (0.5f * Display.main.renderingWidth) - 1;
-            var x_trans = 0.0f;
+            var x_trans = 2 * (viewport.x + 0.5f * viewport.width) / (0.5f * Display.main.renderingWidth) - 1;
             var y_trans = 2 * (viewport.y + 0.5f * viewport.height) / Display.main.renderingHeight - 1;
 
             Vector4 leftUnprojLine =
@@ -123,10 +122,10 @@ namespace Assets.PseudoCardboard
 
             return new FovAngles
             {
-                Left = Mathf.Min(outerAngle, HmdParameters.MaxFovAngles.Left),
-                Right = Mathf.Min(innerAngle, HmdParameters.MaxFovAngles.Right),
-                Bottom = Mathf.Min(bottomAngle, HmdParameters.MaxFovAngles.Bottom),
-                Top = Mathf.Min(topAngle, HmdParameters.MaxFovAngles.Top),
+                Left = outerAngle,
+                Right = innerAngle,
+                Bottom = bottomAngle,
+                Top = topAngle,
             };
         }
 
@@ -145,27 +144,17 @@ namespace Assets.PseudoCardboard
             float outerDist = eyePosX;
             float innerDist = halfLensDistance;
             float bottomDist = eyePosY;
-            float topDist = Display.main.renderingHeight - eyePosY;
+            float topDist = screenHeightMeters - eyePosY;
 
             float outerDistTan = outerDist / eyeToScreenDist;
             float innerDistTan = innerDist / eyeToScreenDist;
             float bottomDistTan = bottomDist / eyeToScreenDist;
             float topDistTan = topDist / eyeToScreenDist;
 
-            outerDistTan = Mathf.Min(outerDistTan, _distortion.UndistortTanAngle(Mathf.Tan(Mathf.Deg2Rad * HmdParameters.MaxFovAngles.Left)));
-            innerDistTan = Mathf.Min(innerDistTan, _distortion.UndistortTanAngle(Mathf.Tan(Mathf.Deg2Rad * HmdParameters.MaxFovAngles.Right)));
-            bottomDistTan = Mathf.Min(bottomDistTan, _distortion.UndistortTanAngle(Mathf.Tan(Mathf.Deg2Rad * HmdParameters.MaxFovAngles.Bottom)));
-            topDistTan = Mathf.Min(topDistTan, _distortion.UndistortTanAngle(Mathf.Tan(Mathf.Deg2Rad * HmdParameters.MaxFovAngles.Top)));
-
-            outerDist = outerDistTan * eyeToScreenDist;
-            innerDist = innerDistTan * eyeToScreenDist;
-            bottomDist = bottomDistTan * eyeToScreenDist;
-            topDist = topDistTan * eyeToScreenDist;
-
-            float x = (eyePosX - outerDist) * xPxPerMeter;
-            float y = (eyePosY - bottomDist) * yPxPerMeter;
-            float w = (eyePosX + innerDist) * xPxPerMeter - x;
-            float h = (eyePosY + topDist) * yPxPerMeter - y;
+            float x = 0;
+            float y = 0;
+            float w = (eyePosX + innerDist) * xPxPerMeter;
+            float h = (eyePosY + topDist) * yPxPerMeter;
 
             viewport = new Rect(x, y, w, h);
 
