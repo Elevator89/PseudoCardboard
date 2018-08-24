@@ -8,7 +8,6 @@ Shader "Unlit/DistortionTex"
 		// we have removed support for texture tiling/offset,
 		// so make them not be displayed in material inspector
 		[NoScaleOffset] _MainTex("Texture", 2D) = "white" {}
-		_ScreenToLensDist("ScreenToLensDist", float) = 0.045
 		_DistortionK1("DistortionK1", float) = 0.51
 		_DistortionK2("DistortionK2", float) = 0.16
 		_ProjectionLeft("ProjectionLeft", Vector) = (0.5, 0.5, 0.5, 0.5)
@@ -27,7 +26,6 @@ Shader "Unlit/DistortionTex"
 	#pragma fragment frag
 	#include "UnityCG.cginc"
 
-			float _ScreenToLensDist;
 			float _DistortionK1;
 			float _DistortionK2;
 			float4 _ProjectionLeft;

@@ -8,10 +8,10 @@ Shader "Unlit/DistortionMesh"
 		// we have removed support for texture tiling/offset,
 		// so make them not be displayed in material inspector
 		[NoScaleOffset] _MainTex("Texture", 2D) = "white" {}
-		_EyeCenterOffsetX("EyeCenterOffsetX", float) = -0.032
 		_DistortionK1("DistortionK1", float) = 0.51
 		_DistortionK2("DistortionK2", float) = 0.16
-		_ScreenToLensDist("ScreenToLensDist", float) = 0.045
+		_ProjectionLeft("ProjectionLeft", Vector) = (0.5, 0.5, 0.5, 0.5)
+		_UnprojectionLeft("UnprojectionLeft", Vector) = (0.5, 0.5, 0.5, 0.5)
 	}
 	SubShader
 	{
@@ -24,10 +24,10 @@ Shader "Unlit/DistortionMesh"
 	#pragma fragment frag
 	#include "UnityCG.cginc"
 
-			float _EyeCenterOffsetX;
 			float _DistortionK1;
 			float _DistortionK2;
-			float _ScreenToLensDist;
+			float4 _ProjectionLeft;
+			float4 _UnprojectionLeft;
 
 			// vertex shader inputs
 			struct appdata
@@ -43,39 +43,40 @@ Shader "Unlit/DistortionMesh"
 				float4 vertex : SV_POSITION; // clip space position
 			};
 
-			float distortionFactor(float radius)
-			{
-				float rSquared = radius * radius;
-				return 1 + _DistortionK1 * rSquared + _DistortionK2 * rSquared * rSquared;
+			float poly(float val) {
+				return 1.0 + (_DistortionK1 + _DistortionK2 * val) * val;
 			}
 
-			float distort(float radius)
-			{
-				return radius * distortionFactor(radius);
+			float2 barrel(float2 v, float4 projection, float4 unprojection) {
+				float2 w = (v + unprojection.zw) / unprojection.xy;
+				return projection.xy * (poly(dot(w, w)) * w) - projection.zw;
 			}
 
-			float3 undistort(float3 viewPos)
-			{
-				float2 center = { _EyeCenterOffsetX, 0.0 };
-				float2 radiusV = viewPos.xy - center;
-				
-				float radiusTan = length(radiusV) / _ScreenToLensDist;
-				float radiusTanUndist = distort(radiusTan);
-
-				viewPos.xy = center + radiusV / distortionFactor(radiusTan);
-				return viewPos;
+			float2 direct(float2 v, float4 projection, float4 unprojection) {
+				float2 w = (v + unprojection.zw) / unprojection.xy;
+				return projection.xy * w - projection.zw;
 			}
 
 			// vertex shader
 			v2f vert(appdata v)
 			{
+				float4 projectionRight = (_ProjectionLeft + float4(0.0, 0.0, 1.0, 0.0)) * float4(1.0, 1.0, -1.0, 1.0);
+				float4 unprojectionRight = (_UnprojectionLeft + float4(0.0, 0.0, 1.0, 0.0)) * float4(1.0, 1.0, -1.0, 1.0);
+
+				float3 viewPos = UnityObjectToViewPos(v.vertex);
+
+				float2 a = (viewPos.x < 0) ?
+					barrel(float2(viewPos.x + 1, 0.5f * (viewPos.y + 1)), _ProjectionLeft, _UnprojectionLeft) :
+					barrel(float2(viewPos.x, 0.5f * (viewPos.y + 1)), projectionRight, unprojectionRight);
+
+				//float2 a = (viewPos.x < 0) ?
+				//	float2(viewPos.x + 1, 0.5f * (viewPos.y + 1)) :
+				//	float2(viewPos.x, 0.5f * (viewPos.y + 1));
+
 				v2f o;
-				// transform position to clip space
-				// (multiply with model*view*projection matrix)
 
-				o.vertex = UnityViewToClipPos(undistort(UnityObjectToViewPos(v.vertex)));
+				o.vertex = UnityViewToClipPos(float3((viewPos.x < 0) ? a.x - 1 : a.x, 2 * a.y - 1, viewPos.z));
 
-				// just pass the texture coordinate
 				o.uv = v.uv;
 				return o; 
 			}
@@ -89,7 +90,7 @@ Shader "Unlit/DistortionMesh"
 			{
 				// sample texture and return it
 				fixed4 col = tex2D(_MainTex, i.uv);
-			return col;
+				return col;
 			}
 			ENDCG
 		}

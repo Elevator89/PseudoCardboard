@@ -4,14 +4,15 @@ using UnityEngine;
 namespace Assets.PseudoCardboard
 {
     [ExecuteInEditMode]
-    public class VrCameraTex : MonoBehaviour
+    [RequireComponent(typeof(Camera))]
+    public class VrCameraMesh : MonoBehaviour
     {
         const float MetersPerInch = 0.0254f;
 
         public HmdParameters HmdParameters;
         public Material EyeMaterial;
-        public RenderTexture RenderTexture;
 
+        private Camera _centralCam;
         private Camera _leftEyeCam;
         private Camera _rightEyeCam;
 
@@ -19,6 +20,8 @@ namespace Assets.PseudoCardboard
 
         void OnEnable()
         {
+            _centralCam = GetComponent<Camera>();
+
             _leftEyeCam = GetComponentsInChildren<Camera>().First(cam => cam.stereoTargetEye == StereoTargetEyeMask.Left);
             _rightEyeCam = GetComponentsInChildren<Camera>().First(cam => cam.stereoTargetEye == StereoTargetEyeMask.Right);
 
@@ -28,7 +31,7 @@ namespace Assets.PseudoCardboard
             _distortion = new Distortion(HmdParameters.DistortionK1, HmdParameters.DistortionK2);
         }
 
-        void OnRenderImage(RenderTexture source, RenderTexture destination)
+        void Update()
         {
             float screenWidthMeters = Display.main.renderingWidth / Screen.dpi * MetersPerInch;
             float screenHeightMeters = Display.main.renderingHeight / Screen.dpi * MetersPerInch;
@@ -61,7 +64,6 @@ namespace Assets.PseudoCardboard
             _rightEyeCam.projectionMatrix = projRight;
 
             UpdateBarrelDistortion(EyeMaterial, viewportNoLensLeft, projLeft, projNoLensLeft);
-            Graphics.Blit(RenderTexture, destination, EyeMaterial);
         }
 
         // Set barrel_distortion parameters given CardboardView.
