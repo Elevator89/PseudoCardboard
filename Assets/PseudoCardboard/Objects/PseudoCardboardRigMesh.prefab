@@ -122,7 +122,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1433579480040324}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.03245, y: 0, z: 0}
+  m_LocalPosition: {x: -0.0325, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4788176211776134}
@@ -149,7 +149,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1293132115169952}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.03245, y: 0, z: 0}
+  m_LocalPosition: {x: 0.0325, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4788176211776134}
@@ -177,7 +177,7 @@ Transform:
   m_GameObject: {fileID: 1086263537122608}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0.020000003}
-  m_LocalScale: {x: 0.07454946, y: 0.064, z: 0}
+  m_LocalScale: {x: 0.08236772, y: 0.064, z: 0}
   m_Children: []
   m_Father: {fileID: 4788176211776134}
   m_RootOrder: 0
@@ -401,8 +401,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4965fc58267176c48876f43bea97bb3b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SegmentWidth: 3
-  SegmentHeight: 3
+  SegmentWidth: 30
+  SegmentHeight: 30
   Width: 2
   Height: 2
 --- !u!114 &114346309184418270
@@ -432,9 +432,9 @@ MonoBehaviour:
   HmdParameters:
     DistortionK1: 0.51
     DistortionK2: 0.16
-    InterlensDistance: 0.0649
-    ScreenToLensDist: 0.045
-    EyeOffsetY: 0.06
+    InterlensDistance: 0.065
+    ScreenToLensDist: 0.042
+    EyeOffsetY: 0.05
     MaxFovAngles:
       Left: 50
       Right: 50
