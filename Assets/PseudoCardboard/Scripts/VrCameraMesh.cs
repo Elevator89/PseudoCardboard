@@ -52,8 +52,8 @@ namespace Assets.PseudoCardboard
             Matrix4x4 projNoLensRight;
             FovAngles noLensFov = GetLeftEyeFovAndViewportNoDistortionCorrection(screenWidthMeters, screenHeightMeters, out viewportNoLensLeft);
 
-            Debug.LogFormat("Viewport: x={0:0.00}; y={1:0.00}; w={2:0.00}; h={3:0.00}", viewportNoLensLeft.x, viewportNoLensLeft.y, viewportNoLensLeft.width, viewportNoLensLeft.height);
-            Debug.LogFormat("FOV: l={0:0.00}; r={1:0.00}; t={2:0.00}; b={3:0.00}", projFov.Left, projFov.Right, projFov.Top, projFov.Bottom);
+            //Debug.LogFormat("Viewport: x={0:0.00}; y={1:0.00}; w={2:0.00}; h={3:0.00}", viewportNoLensLeft.x, viewportNoLensLeft.y, viewportNoLensLeft.width, viewportNoLensLeft.height);
+            //Debug.LogFormat("FOV: l={0:0.00}; r={1:0.00}; t={2:0.00}; b={3:0.00}", projFov.Left, projFov.Right, projFov.Top, projFov.Bottom);
 
             ComposeProjectionMatrices(noLensFov, _leftEyeCam.nearClipPlane, _leftEyeCam.farClipPlane, out projNoLensLeft, out projNoLensRight);
 
