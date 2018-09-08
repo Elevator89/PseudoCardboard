@@ -31,5 +31,7 @@ Material:
     - _BackgroundColor: {r: 1, g: 0, b: 0, a: 0.541}
     - _DistortionParams: {r: -0.032, g: 0, b: 0.51, a: 0.16}
     - _DividerColor: {r: 0.6911765, g: 0.6911765, b: 0.6911765, a: 0.5}
+    - _ProjectionEyeLeft: {r: 0.56504565, g: 0.42733353, b: -0.5919115, a: -0.33237055}
     - _ProjectionLeft: {r: 0.3076909, g: 0.2066738, b: -0.67553854, a: -0.5029449}
+    - _ProjectionWorldLeft: {r: 0.3595284, g: 0.16502659, b: -0.65996313, a: -0.17546898}
     - _UnprojectionLeft: {r: 0.52303183, g: 0.4210615, b: -0.5952729, a: -0.5012636}

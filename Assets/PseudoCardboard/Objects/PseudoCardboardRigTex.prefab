@@ -321,12 +321,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d68952fb3cb1b1a4ba241f32cfafe45a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  HmdParameters:
+  Hmd:
     DistortionK1: 0.51
     DistortionK2: 0.16
     InterlensDistance: 0.065
-    ScreenToLensDist: 0.042
-    EyeOffsetY: 0.05
+    ScreenToLensDist: 0.045
+    EyeOffsetY: 0.035
     MaxFovAngles:
       Left: 50
       Right: 50

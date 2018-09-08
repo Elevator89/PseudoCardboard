@@ -12,8 +12,8 @@ namespace Assets.PseudoCardboard
         public Material EyeMaterial;
 
         private Camera _centralCam;
-        private Camera _leftEyeCam;
-        private Camera _rightEyeCam;
+        private Camera _leftWorldCam;
+        private Camera _rightWorldCam;
 
         private Distortion _distortion;
 
@@ -21,11 +21,11 @@ namespace Assets.PseudoCardboard
         {
             _centralCam = GetComponent<Camera>();
 
-            _leftEyeCam = GetComponentsInChildren<Camera>().First(cam => cam.stereoTargetEye == StereoTargetEyeMask.Left);
-            _rightEyeCam = GetComponentsInChildren<Camera>().First(cam => cam.stereoTargetEye == StereoTargetEyeMask.Right);
+            _leftWorldCam = GetComponentsInChildren<Camera>().First(cam => cam.stereoTargetEye == StereoTargetEyeMask.Left);
+            _rightWorldCam = GetComponentsInChildren<Camera>().First(cam => cam.stereoTargetEye == StereoTargetEyeMask.Right);
 
-            _leftEyeCam.transform.localRotation = Quaternion.identity;
-            _rightEyeCam.transform.localRotation = Quaternion.identity;
+            _leftWorldCam.transform.localRotation = Quaternion.identity;
+            _rightWorldCam.transform.localRotation = Quaternion.identity;
 
             _distortion = new Distortion(Hmd.DistortionK1, Hmd.DistortionK2);
         }
@@ -37,36 +37,45 @@ namespace Assets.PseudoCardboard
             _distortion.DistortionK1 = Hmd.DistortionK1;
             _distortion.DistortionK2 = Hmd.DistortionK2;
 
-            Matrix4x4 projLeft;
-            Matrix4x4 projRight;
+            float zNear = _leftWorldCam.nearClipPlane;
+            float zFar = _leftWorldCam.farClipPlane;
+
+            Matrix4x4 projWorldLeft;
+            Matrix4x4 projWorldRight;
 
             // То, как должен видеть левый глаз. Мнимое изображение (после преломления идеальной линзой без искажений). С широким углом. Именно так надо снять сцену
-            FovAngles projFov = GetLeftEyeFov(Display, Hmd);
-            ComposeProjectionMatrices(projFov, _leftEyeCam.nearClipPlane, _leftEyeCam.farClipPlane, out projLeft, out projRight);
+            FovAngles fovWorldLeft = GetWorldFovLeft(Display, Hmd);
+            ComposeProjectionMatrices(fovWorldLeft, zNear, zFar, out projWorldLeft, out projWorldRight);
 
 
             // То, как левый глаз видит свою половину экрана телефона без линз.
-            Rect viewportNoLensLeft;
-            Matrix4x4 projNoLensLeft;
-            Matrix4x4 projNoLensRight;
-            FovAngles noLensFov = GetLeftEyeFovAndViewportNoDistortionCorrection(Display, Hmd, out viewportNoLensLeft);
+            Rect viewportEyeLeft;
+            Matrix4x4 projEyeLeft;
+            Matrix4x4 projEyeRight;
+            FovAngles fovEyeLeft = GetEyeFovAndViewportLeft(Display, Hmd, out viewportEyeLeft);
 
             //Debug.LogFormat("Viewport: x={0:0.00}; y={1:0.00}; w={2:0.00}; h={3:0.00}", viewportNoLensLeft.x, viewportNoLensLeft.y, viewportNoLensLeft.width, viewportNoLensLeft.height);
             //Debug.LogFormat("FOV: l={0:0.00}; r={1:0.00}; t={2:0.00}; b={3:0.00}", projFov.Left, projFov.Right, projFov.Top, projFov.Bottom);
 
-            ComposeProjectionMatrices(noLensFov, _leftEyeCam.nearClipPlane, _leftEyeCam.farClipPlane, out projNoLensLeft, out projNoLensRight);
+            ComposeProjectionMatrices(fovEyeLeft, zNear, zFar, out projEyeLeft, out projEyeRight);
 
-            _leftEyeCam.transform.localPosition = 0.5f * Vector3.left * Hmd.InterlensDistance;
-            _rightEyeCam.transform.localPosition = 0.5f * Vector3.right * Hmd.InterlensDistance;
+            _leftWorldCam.transform.localPosition = 0.5f * Vector3.left * Hmd.InterlensDistance;
+            _rightWorldCam.transform.localPosition = 0.5f * Vector3.right * Hmd.InterlensDistance;
 
-            _leftEyeCam.projectionMatrix = projLeft;
-            _rightEyeCam.projectionMatrix = projRight;
+            _leftWorldCam.projectionMatrix = projWorldLeft;
+            _rightWorldCam.projectionMatrix = projWorldRight;
 
-            UpdateBarrelDistortion(EyeMaterial, viewportNoLensLeft, projLeft, projNoLensLeft);
+            //_leftEyeCam.transform.localPosition = 0.5f * Vector3.left * Hmd.InterlensDistance;
+            //_rightEyeCam.transform.localPosition = 0.5f * Vector3.right * Hmd.InterlensDistance;
+
+            //_leftEyeCam.projectionMatrix = projWorldLeft;
+            //_rightEyeCam.projectionMatrix = projWorldRight;
+
+            UpdateBarrelDistortion(EyeMaterial, viewportEyeLeft, projWorldLeft, projEyeLeft);
         }
 
         // Set barrel_distortion parameters given CardboardView.
-        private void UpdateBarrelDistortion(Material distortionTex, Rect viewport, Matrix4x4 projLeft, Matrix4x4 projNoLensLeft)
+        private void UpdateBarrelDistortion(Material distortionShader, Rect viewportEyeLeft, Matrix4x4 projWorldLeft, Matrix4x4 projEyeLeft)
         {
             // Shader params include parts of the projection matrices needed to
             // convert texture coordinates between distorted and undistorted
@@ -75,34 +84,34 @@ namespace Assets.PseudoCardboard
             // viewport on the screen.
             // TODO: have explicit viewport transform in shader for simplicity
 
-            distortionTex.SetFloat("_DistortionK1", Hmd.DistortionK1);
-            distortionTex.SetFloat("_DistortionK2", Hmd.DistortionK2);
+            distortionShader.SetFloat("_DistortionK1", Hmd.DistortionK1);
+            distortionShader.SetFloat("_DistortionK2", Hmd.DistortionK2);
 
-            Vector4 leftProjLine =
+            Vector4 projWorldLine =
                 new Vector4(
-                    projLeft[0, 0],
-                    projLeft[1, 1],
-                    projLeft[0, 2] - 1,
-                    projLeft[1, 2] - 1) / 2.0f;
+                    projWorldLeft[0, 0],
+                    projWorldLeft[1, 1],
+                    projWorldLeft[0, 2] - 1,
+                    projWorldLeft[1, 2] - 1) / 2.0f;
 
-            var x_scale = viewport.width / (0.5f * Display.Resolution.x);
-            var y_scale = viewport.height / Display.Resolution.y;
-            var x_trans = 2 * (viewport.x + 0.5f * viewport.width) / (0.5f * Display.Resolution.x) - 1;
-            var y_trans = 2 * (viewport.y + 0.5f * viewport.height) / Display.Resolution.y - 1;
+            var x_scale = viewportEyeLeft.width / (0.5f * Display.Resolution.x);
+            var y_scale = viewportEyeLeft.height / Display.Resolution.y;
+            var x_trans = 2 * (viewportEyeLeft.x + 0.5f * viewportEyeLeft.width) / (0.5f * Display.Resolution.x) - 1;
+            var y_trans = 2 * (viewportEyeLeft.y + 0.5f * viewportEyeLeft.height) / Display.Resolution.y - 1;
 
-            Vector4 leftUnprojLine =
+            Vector4 projEyeLine =
                 new Vector4(
-                    projNoLensLeft[0, 0] * x_scale,
-                    projNoLensLeft[1, 1] * y_scale,
-                    projNoLensLeft[0, 2] - 1 - x_trans,
-                    projNoLensLeft[1, 2] - 1 - y_trans) / 2.0f;
+                    projEyeLeft[0, 0] * x_scale,
+                    projEyeLeft[1, 1] * y_scale,
+                    projEyeLeft[0, 2] - 1 - x_trans,
+                    projEyeLeft[1, 2] - 1 - y_trans) / 2.0f;
 
-            distortionTex.SetVector("_ProjectionLeft", leftProjLine);
-            distortionTex.SetVector("_UnprojectionLeft", leftUnprojLine);
+            distortionShader.SetVector("_ProjectionWorldLeft", projWorldLine);
+            distortionShader.SetVector("_ProjectionEyeLeft", projEyeLine);
         }
 
         /// То, как должен видеть левый глаз. Мнимое изображение (после преломления идеальной линзой без искажений). С широким углом
-        private FovAngles GetLeftEyeFov(DisplayParameters display, HmdParameters hmd)
+        private FovAngles GetWorldFovLeft(DisplayParameters display, HmdParameters hmd)
         {
             // The screen-to-lens distance can be used as a rough approximation
             // of the virtual-eye-to-screen distance.
@@ -128,7 +137,7 @@ namespace Assets.PseudoCardboard
         }
 
         /// То, как левый глаз видит свою половину экрана телефона без линз.
-        private FovAngles GetLeftEyeFovAndViewportNoDistortionCorrection(DisplayParameters display, HmdParameters hmd, out Rect viewport)
+        private FovAngles GetEyeFovAndViewportLeft(DisplayParameters display, HmdParameters hmd, out Rect viewport)
         {
             // The screen-to-lens distance can be used as a rough approximation
             // of the virtual-eye-to-screen distance.

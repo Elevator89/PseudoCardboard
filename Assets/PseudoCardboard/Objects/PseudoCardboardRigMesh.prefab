@@ -40,7 +40,6 @@ GameObject:
   - component: {fileID: 4768255558389066}
   - component: {fileID: 33216159191849482}
   - component: {fileID: 23732792289760554}
-  - component: {fileID: 114695135089102034}
   - component: {fileID: 114087623088771096}
   m_Layer: 8
   m_Name: Quad
@@ -195,8 +194,8 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1086263537122608}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0.020000003}
-  m_LocalScale: {x: 0.06515386, y: 0.040000007, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 1}
+  m_LocalScale: {x: 3.0251257, y: 2, z: 0}
   m_Children: []
   m_Father: {fileID: 4788176211776134}
   m_RootOrder: 1
@@ -209,7 +208,7 @@ Transform:
   m_GameObject: {fileID: 1094953838487040}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0.02}
-  m_LocalScale: {x: 0.06638463, y: 0.040000007, z: 0}
+  m_LocalScale: {x: 0.06046155, y: 0.040000007, z: 0}
   m_Children: []
   m_Father: {fileID: 4788176211776134}
   m_RootOrder: 0
@@ -384,7 +383,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_Materials:
-  - {fileID: 2100000, guid: 73900b92cacbc7b4ebc0413cf6d2db92, type: 2}
+  - {fileID: 2100000, guid: 79b86b25c12519241b7f4d1a89ea7c69, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -409,7 +408,7 @@ MeshFilter:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1094953838487040}
-  m_Mesh: {fileID: 0}
+  m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!33 &33220104440645254
 MeshFilter:
   m_ObjectHideFlags: 1
@@ -486,8 +485,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4965fc58267176c48876f43bea97bb3b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SegmentWidth: 1
-  SegmentHeight: 1
+  SegmentWidth: 20
+  SegmentHeight: 20
   Width: 1
   Height: 1
 --- !u!114 &114346309184418270
@@ -503,21 +502,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Plane: {fileID: 4616011073306574}
   Camera: {fileID: 20562261616998352}
---- !u!114 &114695135089102034
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1094953838487040}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4965fc58267176c48876f43bea97bb3b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  SegmentWidth: 1
-  SegmentHeight: 1
-  Width: 1
-  Height: 1
 --- !u!114 &114708356539413756
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -529,12 +513,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bbb0ad12c43f4b941af5e942d5272b17, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  HmdParameters:
+  Hmd:
     DistortionK1: 0.51
     DistortionK2: 0.16
     InterlensDistance: 0.065
-    ScreenToLensDist: 0.042
-    EyeOffsetY: 0.05
+    ScreenToLensDist: 0.045
+    EyeOffsetY: 0.035
     MaxFovAngles:
       Left: 50
       Right: 50

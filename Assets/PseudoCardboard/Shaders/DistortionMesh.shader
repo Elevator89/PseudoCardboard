@@ -10,8 +10,8 @@ Shader "Unlit/DistortionMesh"
 		[NoScaleOffset] _MainTex("Texture", 2D) = "white" {}
 		_DistortionK1("DistortionK1", float) = 0.51
 		_DistortionK2("DistortionK2", float) = 0.16
-		_ProjectionLeft("ProjectionLeft", Vector) = (0.5, 0.5, 0.5, 0.5)
-		_UnprojectionLeft("UnprojectionLeft", Vector) = (0.5, 0.5, 0.5, 0.5)
+		_ProjectionWorldLeft("ProjectionWorldLeft", Vector) = (0.5, 0.5, 0.5, 0.5)
+		_ProjectionEyeLeft("ProjectionEyeLeft", Vector) = (0.5, 0.5, 0.5, 0.5)
 	}
 	SubShader
 	{
@@ -26,15 +26,14 @@ Shader "Unlit/DistortionMesh"
 
 			float _DistortionK1;
 			float _DistortionK2;
-			float4 _ProjectionLeft;
-			float4 _UnprojectionLeft;
+			float4 _ProjectionWorldLeft;
+			float4 _ProjectionEyeLeft;
 
 			// vertex shader inputs
 			struct appdata
 			{
 				float4 vertex : POSITION; // vertex position
 				float2 uv : TEXCOORD0; // texture coordinate
-				float2 uv2 : TEXCOORD1; // texture coordinate
 			};
 
 			// vertex shader outputs ("vertex to fragment")
@@ -42,7 +41,6 @@ Shader "Unlit/DistortionMesh"
 			{
 				float4 vertex : SV_POSITION; // clip space position
 				float2 uv : TEXCOORD0; // texture coordinate
-				float2 uv2 : TEXCOORD1; // texture coordinate
 			};
 
 			float Undistort(float r);
@@ -104,47 +102,43 @@ Shader "Unlit/DistortionMesh"
 				return 1.0 + (_DistortionK1 + _DistortionK2 * r2) * r2;
 			}
 
-			float2 barrel(float2 v, float4 projection, float4 unprojection) {
-				float2 w = (v + projection.zw) / projection.xy;
-				return unprojection.xy * Undistort(w) - unprojection.zw;
+			float2 barrel(float2 v, float4 projectionWorld, float4 projectionEye) {
+				float2 w = (v + projectionWorld.zw) / projectionWorld.xy;
+				return projectionEye.xy * Undistort(w) - projectionEye.zw;
 			}
 
-			float4 barrel4(float2 v, float4 projection, float4 unprojection) {
-				float2 w = (v + projection.zw) / projection.xy;
+			float4 barrel4(float2 v, float4 projectionWorld, float4 projectionEye) {
+				float2 w = (v + projectionWorld.zw) / projectionWorld.xy;
 				float4 undistData = Undistort4(w);
-				float2 unbarraled = unprojection.xy * undistData.xy - unprojection.zw;
-				return float4(unbarraled.x, unbarraled.y, projection.x, projection.y);
+				float2 unbarraled = projectionEye.xy * undistData.xy - projectionEye.zw;
+				return float4(unbarraled.x, unbarraled.y, undistData.z, undistData.w);
 			}
 
-			float2 direct(float2 v, float4 projection, float4 unprojection) {
-				float2 w = (v + projection.zw) / projection.xy;
-				return unprojection.xy * w - unprojection.zw;
+			float2 direct(float2 v, float4 projectionWorld, float4 projectionEye) {
+				float2 w = (v + projectionWorld.zw) / projectionWorld.xy;
+				return projectionEye.xy * w - projectionEye.zw;
 			}
 
 			// vertex shader
 			v2f vert(appdata v)
 			{
-				float4 projectionRight = (_ProjectionLeft + float4(0.0, 0.0, 1.0, 0.0)) * float4(1.0, 1.0, -1.0, 1.0);
-				float4 unprojectionRight = (_UnprojectionLeft + float4(0.0, 0.0, 1.0, 0.0)) * float4(1.0, 1.0, -1.0, 1.0);
+				float4 projectionWorldRight = (_ProjectionWorldLeft + float4(0.0, 0.0, 1.0, 0.0)) * float4(1.0, 1.0, -1.0, 1.0);
+				float4 projectionEyeRight = (_ProjectionEyeLeft + float4(0.0, 0.0, 1.0, 0.0)) * float4(1.0, 1.0, -1.0, 1.0);
 
 				// clipPos : -1..+1
 				float4 clipPos = UnityObjectToClipPos(v.vertex);
 
 				float2 a = (clipPos.x < 0) ?
-					barrel(float2(clipPos.x + 1, 0.5f * (1- clipPos.y)), _ProjectionLeft, _UnprojectionLeft) :
-					barrel(float2(clipPos.x, 0.5f * (1 - clipPos.y)), projectionRight, unprojectionRight);
+					barrel(float2(clipPos.x + 1, 0.5f * (1- clipPos.y)), _ProjectionWorldLeft, _ProjectionEyeLeft) :
+					barrel(float2(clipPos.x, 0.5f * (1 - clipPos.y)), projectionWorldRight, projectionEyeRight);
 
 				//float2 a = (clipPos.x < 0) ?
 				//	float2(clipPos.x + 1, 0.5f * (1- clipPos.y)) :
 				//	float2(clipPos.x, 0.5f * (1 - clipPos.y));
 
 				v2f o;
-				//o.vertex = float4((clipPos.x < 0) ? a.x - 1 : a.x, 1 - 2 * a.y, clipPos.z, clipPos.w);
-
-				o.vertex = clipPos;
+				o.vertex = float4((clipPos.x < 0) ? a.x - 1 : a.x, 1 - 2 * a.y, clipPos.z, clipPos.w);
 				o.uv = v.uv;
-				//o.uv2 = float2((clipPos.x < 0) ? a.x - 1 : a.x, 1 - 2 * a.y);
-				o.uv2 = 0.5 * (1 + clipPos.xy);
 
 				return o; 
 			}
@@ -153,10 +147,7 @@ Shader "Unlit/DistortionMesh"
 
 			fixed4 frag(v2f i) : SV_Target
 			{
-				//float2 tc = float2(i.uv.x / i.uv2.x, i.uv.y / i.uv2.x);
-				return fixed4(i.uv.x, i.uv.y, 0, 1);
-				//return tex2D(_MainTex, tc);
-				//return tex2D(_MainTex, i.uv);
+				return tex2D(_MainTex, i.uv);
 			}
 			ENDCG
 		}

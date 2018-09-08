@@ -10,8 +10,8 @@ Shader "Unlit/DistortionTex"
 		[NoScaleOffset] _MainTex("Texture", 2D) = "white" {}
 		_DistortionK1("DistortionK1", float) = 0.51
 		_DistortionK2("DistortionK2", float) = 0.16
-		_ProjectionLeft("ProjectionLeft", Vector) = (0.5, 0.5, 0.5, 0.5)
-		_UnprojectionLeft("UnprojectionLeft", Vector) = (0.5, 0.5, 0.5, 0.5)
+		_ProjectionWorldLeft("ProjectionWorldLeft", Vector) = (0.5, 0.5, 0.5, 0.5)
+		_ProjectionEyeLeft("ProjectionEyeLeft", Vector) = (0.5, 0.5, 0.5, 0.5)
 		_BackgroundColor("BackgroundColor", Color) = (0.5, 0.5, 0.5, 0.5)
 		_DividerColor("DividerColor", Color) = (0.5, 0.5, 0.5, 0.5)
 	}
@@ -28,8 +28,8 @@ Shader "Unlit/DistortionTex"
 
 			float _DistortionK1;
 			float _DistortionK2;
-			float4 _ProjectionLeft;
-			float4 _UnprojectionLeft;
+			float4 _ProjectionWorldLeft;
+			float4 _ProjectionEyeLeft;
 			fixed4 _BackgroundColor;
 			fixed4 _DividerColor;
 			int _ShowCenter;
@@ -42,14 +42,14 @@ Shader "Unlit/DistortionTex"
 				//return 1.0 + (_DistortionK1 + _DistortionK2 * val) * val;
 			}
 
-			float2 barrel(float2 v, float4 projection, float4 unprojection) {
-				float2 w = (v + unprojection.zw) / unprojection.xy;
-				return projection.xy * (poly(dot(w, w)) * w) - projection.zw;
+			float2 barrel(float2 v, float4 projectionWorld, float4 projectionEye) {
+				float2 w = (v + projectionEye.zw) / projectionEye.xy;
+				return projectionWorld.xy * (poly(dot(w, w)) * w) - projectionWorld.zw;
 			}
 
-			float2 direct(float2 v, float4 projection, float4 unprojection) {
-				float2 w = (v + unprojection.zw) / unprojection.xy;
-				return projection.xy * w - projection.zw;
+			float2 direct(float2 v, float4 projectionWorld, float4 projectionEye) {
+				float2 w = (v + projectionEye.zw) / projectionEye.xy;
+				return projectionWorld.xy * w - projectionWorld.zw;
 			}
 
 			// texture we will sample
@@ -60,17 +60,17 @@ Shader "Unlit/DistortionTex"
 			fixed4 frag(v2f_img i) : SV_Target
 			{
 				// right projections are shifted and vertically mirrored relative to left
-				float4 projectionRight = (_ProjectionLeft + float4(0.0, 0.0, 1.0, 0.0)) * float4(1.0, 1.0, -1.0, 1.0);
-				float4 unprojectionRight = (_UnprojectionLeft + float4(0.0, 0.0, 1.0, 0.0)) * float4(1.0, 1.0, -1.0, 1.0);
+				float4 projectionWorldRight = (_ProjectionWorldLeft + float4(0.0, 0.0, 1.0, 0.0)) * float4(1.0, 1.0, -1.0, 1.0);
+				float4 projectionEyeRight = (_ProjectionEyeLeft + float4(0.0, 0.0, 1.0, 0.0)) * float4(1.0, 1.0, -1.0, 1.0);
 
 				float2 a = (i.uv.x < 0.5) ?
-					barrel(float2(2 * i.uv.x, i.uv.y), _ProjectionLeft, _UnprojectionLeft) :
-					barrel(float2(2 * (i.uv.x - 0.5), i.uv.y), projectionRight, unprojectionRight);
+					barrel(float2(2 * i.uv.x, i.uv.y), _ProjectionWorldLeft, _ProjectionEyeLeft) :
+					barrel(float2(2 * (i.uv.x - 0.5), i.uv.y), projectionWorldRight, projectionEyeRight);
 
 				// sompare
 				//float2 a = (i.uv.x < 0.5) ?
-				//	direct(float2(2 * i.uv.x, i.uv.y), _ProjectionLeft, _UnprojectionLeft) :
-				//	float2(2 * (i.uv.x - 0.5), i.uv.y), _ProjectionLeft, _UnprojectionLeft;
+				//	direct(float2(2 * i.uv.x, i.uv.y), _ProjectionWorldLeft, _ProjectionEyeLeft) :
+				//	float2(2 * (i.uv.x - 0.5), i.uv.y), _ProjectionWorldLeft, _ProjectionEyeLeft;
 
 				if (_DividerColor.w > 0.0 && abs(i.uv.x - 0.5) < .001) {
 					return _DividerColor;

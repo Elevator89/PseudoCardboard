@@ -20,7 +20,7 @@ namespace Assets.PseudoCardboard
 
         public float Dpm
         {
-            get { return Screen.dpi * MetersPerInch; }
+            get { return Screen.dpi / MetersPerInch; }
         }
 
         public Vector2 Size
