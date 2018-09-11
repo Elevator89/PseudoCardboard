@@ -74,12 +74,12 @@ GameObject:
   - component: {fileID: 136628008548843506}
   - component: {fileID: 114912101149781404}
   m_Layer: 0
-  m_Name: PseudoCardboardRigTex
+  m_Name: VrRigTex
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!1 &1942576135912560
 GameObject:
   m_ObjectHideFlags: 1
@@ -321,17 +321,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d68952fb3cb1b1a4ba241f32cfafe45a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Hmd:
-    DistortionK1: 0.51
-    DistortionK2: 0.16
-    InterlensDistance: 0.065
-    ScreenToLensDist: 0.045
-    EyeOffsetY: 0.035
-    MaxFovAngles:
-      Left: 50
-      Right: 50
-      Top: 50
-      Bottom: 50
   EyeMaterial: {fileID: 2100000, guid: 5c6e01ba44f36fa4d81090d21b859050, type: 2}
   RenderTexture: {fileID: 8400000, guid: 93011ab5ee0761d4687f9dd4ba2b03c6, type: 2}
 --- !u!114 &114912101149781404
@@ -345,7 +334,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f259de05da7b2ad46ac5068149f9ab4f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _cam: {fileID: 4844131628625976}
+  _cam: {fileID: 4823811756056214}
   PlayerHeight: 1.7
   StartMoving:
     m_PersistentCalls:

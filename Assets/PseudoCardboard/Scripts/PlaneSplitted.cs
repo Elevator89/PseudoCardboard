@@ -4,7 +4,7 @@ namespace Assets.PseudoCardboard.Scripts
 {
     [ExecuteInEditMode]
     [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
-    public class GridMesh : MonoBehaviour
+    public class PlaneSplitted : MonoBehaviour
     {
         public int SegmentWidth = 8;
         public int SegmentHeight = 5;

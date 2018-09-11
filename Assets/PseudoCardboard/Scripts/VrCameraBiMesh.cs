@@ -1,31 +1,45 @@
-﻿using System.Linq;
-using UnityEngine;
+﻿using UnityEngine;
 
-namespace Assets.PseudoCardboard
+namespace Assets.PseudoCardboard.Scripts
 {
     [ExecuteInEditMode]
     [RequireComponent(typeof(Camera))]
-    public class VrCameraMesh : MonoBehaviour
+    public class VrCameraBiMesh : MonoBehaviour
     {
-        public DisplayParameters Display;
-        public HmdParameters Hmd;
         public Material EyeMaterial;
 
-        private Camera _centralCam;
-        private Camera _leftWorldCam;
-        private Camera _rightWorldCam;
+        [SerializeField]
+        private Camera _camWorldLeft;
+        private FovScaler _camWorldLeftScaler;
+
+        [SerializeField]
+        private Camera _camWorldRight;
+        private FovScaler _camWorldRightScaler;
+
+
+        [SerializeField]
+        private Camera _camEyeLeft;
+
+        [SerializeField]
+        private Camera _camEyeRight;
 
         private Distortion _distortion;
+        private DisplayParameters Display;
+        private HmdParameters Hmd;
 
         void OnEnable()
         {
-            _centralCam = GetComponent<Camera>();
+            Hmd = FindObjectOfType<HmdParamRoot>().HmdParameters;
+            Display = new DisplayParameters();
 
-            _leftWorldCam = GetComponentsInChildren<Camera>().First(cam => cam.stereoTargetEye == StereoTargetEyeMask.Left);
-            _rightWorldCam = GetComponentsInChildren<Camera>().First(cam => cam.stereoTargetEye == StereoTargetEyeMask.Right);
+            _camWorldLeft.transform.localRotation = Quaternion.identity;
+            _camWorldRight.transform.localRotation = Quaternion.identity;
 
-            _leftWorldCam.transform.localRotation = Quaternion.identity;
-            _rightWorldCam.transform.localRotation = Quaternion.identity;
+            _camWorldLeftScaler = _camWorldLeft.GetComponentInChildren<FovScaler>();
+            _camWorldRightScaler = _camWorldRight.GetComponentInChildren<FovScaler>();
+
+            _camEyeLeft.transform.localRotation = Quaternion.identity;
+            _camEyeRight.transform.localRotation = Quaternion.identity;
 
             _distortion = new Distortion(Hmd.DistortionK1, Hmd.DistortionK2);
         }
@@ -37,39 +51,42 @@ namespace Assets.PseudoCardboard
             _distortion.DistortionK1 = Hmd.DistortionK1;
             _distortion.DistortionK2 = Hmd.DistortionK2;
 
-            float zNear = _leftWorldCam.nearClipPlane;
-            float zFar = _leftWorldCam.farClipPlane;
+            float zNear = _camWorldLeft.nearClipPlane;
+            float zFar = _camWorldLeft.farClipPlane;
 
             Matrix4x4 projWorldLeft;
             Matrix4x4 projWorldRight;
 
             // То, как должен видеть левый глаз. Мнимое изображение (после увеличения идеальной линзой без искажений). С широким углом. Именно так надо снять сцену
-            FovAngles fovWorldLeft = Calculator.GetWorldFovLeft(_distortion, Display, Hmd);
-            Calculator.ComposeProjectionMatrices(fovWorldLeft, zNear, zFar, out projWorldLeft, out projWorldRight);
+            Fov fovWorldTanAnglesLeft = Calculator.GetWorldFovTanAnglesLeft(_distortion, Display, Hmd);
+            Calculator.ComposeProjectionMatricesFromFovTanAngles(fovWorldTanAnglesLeft, zNear, zFar, out projWorldLeft, out projWorldRight);
 
 
             // То, как левый глаз видит свою половину экрана телефона без линз.
             Rect viewportEyeLeft;
             Matrix4x4 projEyeLeft;
             Matrix4x4 projEyeRight;
-            FovAngles fovEyeLeft = Calculator.GetEyeFovAndViewportLeft(Display, Hmd, out viewportEyeLeft);
+            Fov fovEyeTanAnglesLeft = Calculator.GetEyeFovTanAnglesAndViewportLeft(Display, Hmd, out viewportEyeLeft);
 
             //Debug.LogFormat("Viewport: x={0:0.00}; y={1:0.00}; w={2:0.00}; h={3:0.00}", viewportNoLensLeft.x, viewportNoLensLeft.y, viewportNoLensLeft.width, viewportNoLensLeft.height);
             //Debug.LogFormat("FOV: l={0:0.00}; r={1:0.00}; t={2:0.00}; b={3:0.00}", projFov.Left, projFov.Right, projFov.Top, projFov.Bottom);
 
-            Calculator.ComposeProjectionMatrices(fovEyeLeft, zNear, zFar, out projEyeLeft, out projEyeRight);
+            Calculator.ComposeProjectionMatricesFromFovTanAngles(fovEyeTanAnglesLeft, zNear, zFar, out projEyeLeft, out projEyeRight);
 
-            _leftWorldCam.transform.localPosition = 0.5f * Vector3.left * Hmd.InterlensDistance;
-            _rightWorldCam.transform.localPosition = 0.5f * Vector3.right * Hmd.InterlensDistance;
+            _camWorldLeft.transform.localPosition = 0.5f * Vector3.left * Hmd.InterlensDistance;
+            _camWorldRight.transform.localPosition = 0.5f * Vector3.right * Hmd.InterlensDistance;
 
-            _leftWorldCam.projectionMatrix = projWorldLeft;
-            _rightWorldCam.projectionMatrix = projWorldRight;
+            _camEyeLeft.transform.localPosition = 0.5f * Vector3.left * Hmd.InterlensDistance;
+            _camEyeRight.transform.localPosition = 0.5f * Vector3.right * Hmd.InterlensDistance;
 
-            //_leftEyeCam.transform.localPosition = 0.5f * Vector3.left * Hmd.InterlensDistance;
-            //_rightEyeCam.transform.localPosition = 0.5f * Vector3.right * Hmd.InterlensDistance;
+            _camWorldLeft.projectionMatrix = projWorldLeft;
+            _camWorldRight.projectionMatrix = projWorldRight;
 
-            //_leftEyeCam.projectionMatrix = projWorldLeft;
-            //_rightEyeCam.projectionMatrix = projWorldRight;
+            _camWorldLeftScaler.SetFov(fovWorldTanAnglesLeft);
+            _camWorldRightScaler.SetFov(fovWorldTanAnglesLeft.GetFlippedHorizontally());
+
+            _camEyeLeft.projectionMatrix = projEyeLeft;
+            _camEyeRight.projectionMatrix = projEyeRight;
 
             UpdateBarrelDistortion(EyeMaterial, viewportEyeLeft, projWorldLeft, projEyeLeft);
         }

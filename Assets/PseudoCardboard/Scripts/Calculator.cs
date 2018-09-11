@@ -5,77 +5,99 @@ namespace Assets.PseudoCardboard
     public static class Calculator
     {
         /// То, как должен видеть левый глаз. Мнимое изображение (после преломления идеальной линзой без искажений). С широким углом
-        public static FovAngles GetWorldFovLeft(Distortion distortion, DisplayParameters display, HmdParameters hmd)
+        public static Fov GetWorldFovLeft(Distortion distortion, DisplayParameters display, HmdParameters hmd)
+        {
+            return Fov.TanAnglesToAngles(GetWorldFovTanAnglesLeft(distortion, display, hmd));
+        }
+
+        public static Fov GetWorldFovTanAnglesLeft(Distortion distortion, DisplayParameters display, HmdParameters hmd)
+        {
+            return DistortTanAngles(GetEyeFovTanAnglesLeft(display, hmd), distortion);
+        }
+
+        public static Fov GetEyeFovAndViewportLeft(DisplayParameters display, HmdParameters hmd, out Rect leftViewport)
         {
             // The screen-to-lens distance can be used as a rough approximation
             // of the virtual-eye-to-screen distance.
             float eyeToScreenDist = hmd.ScreenToLensDist;
 
+            Fov fovDistances = GetFovDistancesLeft(display, hmd);
+            leftViewport = GetViewportLeft(fovDistances, display.Dpm);
+
+            return Fov.TanAnglesToAngles(fovDistances / eyeToScreenDist);
+        }
+
+        public static Fov GetEyeFovTanAnglesAndViewportLeft(DisplayParameters display, HmdParameters hmd, out Rect leftViewport)
+        {
+            // The screen-to-lens distance can be used as a rough approximation
+            // of the virtual-eye-to-screen distance.
+            float eyeToScreenDist = hmd.ScreenToLensDist;
+
+            Fov fovDistances = GetFovDistancesLeft(display, hmd);
+            leftViewport = GetViewportLeft(fovDistances, display.Dpm);
+
+            return fovDistances / eyeToScreenDist;
+        }
+
+        /// То, как левый глаз видит свою половину экрана телефона без линз.
+        public static Fov GetEyeFovLeft(DisplayParameters display, HmdParameters hmd)
+        {
+            return Fov.TanAnglesToAngles(GetEyeFovTanAnglesLeft(display, hmd));
+        }
+
+        public static Fov GetEyeFovTanAnglesLeft(DisplayParameters display, HmdParameters hmd)
+        {
+            // The screen-to-lens distance can be used as a rough approximation
+            // of the virtual-eye-to-screen distance.
+            float eyeToScreenDist = hmd.ScreenToLensDist;
+
+            Fov fovDistances = GetFovDistancesLeft(display, hmd);
+            return fovDistances / eyeToScreenDist;
+        }
+
+        public static Rect GetViewportLeft(Fov fovDistances, float dpm)
+        {
+            return new Rect(
+                0,
+                0,
+                (fovDistances.Left + fovDistances.Right) * dpm,
+                (fovDistances.Bottom + fovDistances.Top) * dpm);
+        }
+
+        private static Fov GetFovDistancesLeft(DisplayParameters display, HmdParameters hmd)
+        {
             float outerDist = 0.5f * (display.Size.x - hmd.InterlensDistance);
             float innerDist = 0.5f * hmd.InterlensDistance;
             float bottomDist = hmd.EyeOffsetY;
             float topDist = display.Size.y - bottomDist;
 
-            float outerAngle = Mathf.Rad2Deg * Mathf.Atan(distortion.DistortTanAngle(outerDist / eyeToScreenDist));
-            float innerAngle = Mathf.Rad2Deg * Mathf.Atan(distortion.DistortTanAngle(innerDist / eyeToScreenDist));
-            float bottomAngle = Mathf.Rad2Deg * Mathf.Atan(distortion.DistortTanAngle(bottomDist / eyeToScreenDist));
-            float topAngle = Mathf.Rad2Deg * Mathf.Atan(distortion.DistortTanAngle(topDist / eyeToScreenDist));
-
-            return new FovAngles
-            {
-                Left = outerAngle,
-                Right = innerAngle,
-                Bottom = bottomAngle,
-                Top = topAngle,
-            };
+            return new Fov(outerDist, innerDist, bottomDist, topDist);
         }
 
-        /// То, как левый глаз видит свою половину экрана телефона без линз.
-        public static FovAngles GetEyeFovAndViewportLeft(DisplayParameters display, HmdParameters hmd, out Rect viewport)
+        private static Fov DistortTanAngles(Fov tanAngles, Distortion distortion)
         {
-            // The screen-to-lens distance can be used as a rough approximation
-            // of the virtual-eye-to-screen distance.
-            float eyeToScreenDist = hmd.ScreenToLensDist;
-            float halfLensDistance = 0.5f * hmd.InterlensDistance;
-
-            float eyePosX = 0.5f * display.Size.x - halfLensDistance;
-            float eyePosY = hmd.EyeOffsetY;
-
-            float outerDist = eyePosX;
-            float innerDist = halfLensDistance;
-            float bottomDist = eyePosY;
-            float topDist = display.Size.y - eyePosY;
-
-            float outerDistTan = outerDist / eyeToScreenDist;
-            float innerDistTan = innerDist / eyeToScreenDist;
-            float bottomDistTan = bottomDist / eyeToScreenDist;
-            float topDistTan = topDist / eyeToScreenDist;
-
-            float x = 0;
-            float y = 0;
-            float w = (eyePosX + innerDist) * display.Dpm;
-            float h = (eyePosY + topDist) * display.Dpm;
-
-            viewport = new Rect(x, y, w, h);
-
-            return new FovAngles
-            {
-                Left = Mathf.Rad2Deg * Mathf.Atan(outerDistTan),
-                Right = Mathf.Rad2Deg * Mathf.Atan(innerDistTan),
-                Bottom = Mathf.Rad2Deg * Mathf.Atan(bottomDistTan),
-                Top = Mathf.Rad2Deg * Mathf.Atan(topDistTan),
-            };
+            return new Fov
+            (
+                distortion.DistortTanAngle(tanAngles.Left),
+                distortion.DistortTanAngle(tanAngles.Right),
+                distortion.DistortTanAngle(tanAngles.Bottom),
+                distortion.DistortTanAngle(tanAngles.Top)
+            );
         }
 
-        public static void ComposeProjectionMatrices(FovAngles leftFovAngles, float near, float far, out Matrix4x4 left, out Matrix4x4 right)
+        public static void ComposeProjectionMatricesFromFovAngles(Fov leftFovAngles, float near, float far, out Matrix4x4 left, out Matrix4x4 right)
         {
-            float outer = Mathf.Tan(leftFovAngles.Left * Mathf.Deg2Rad) * near;
-            float inner = Mathf.Tan(leftFovAngles.Right * Mathf.Deg2Rad) * near;
-            float bottom = Mathf.Tan(leftFovAngles.Bottom * Mathf.Deg2Rad) * near;
-            float top = Mathf.Tan(leftFovAngles.Top * Mathf.Deg2Rad) * near;
+            Fov leftFovTanAngles = (leftFovAngles * Mathf.Deg2Rad).GetTan();
 
-            left = Matrix4x4Ext.CreateFrustum(-outer, inner, -bottom, top, near, far);
-            right = Matrix4x4Ext.CreateFrustum(-inner, outer, -bottom, top, near, far);
+            ComposeProjectionMatricesFromFovTanAngles(leftFovTanAngles, near, far, out left, out right);
+        }
+
+        public static void ComposeProjectionMatricesFromFovTanAngles(Fov leftFovTanAngles, float near, float far, out Matrix4x4 left, out Matrix4x4 right)
+        {
+            Fov nearProjection = leftFovTanAngles * near;
+
+            left = Matrix4x4Ext.CreateFrustum(-nearProjection.Left, nearProjection.Right, -nearProjection.Bottom, nearProjection.Top, near, far);
+            right = Matrix4x4Ext.CreateFrustum(-nearProjection.Right, nearProjection.Left, -nearProjection.Bottom, nearProjection.Top, near, far);
         }
 
     }

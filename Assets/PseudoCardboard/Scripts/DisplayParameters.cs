@@ -10,7 +10,7 @@ namespace Assets.PseudoCardboard
 
         public Vector2 Resolution
         {
-            get { return new Vector2(Display.main.renderingWidth, Display.main.renderingHeight); }      
+            get { return new Vector2(Display.main.renderingWidth, Display.main.renderingHeight); }
         }
 
         public float Dpi

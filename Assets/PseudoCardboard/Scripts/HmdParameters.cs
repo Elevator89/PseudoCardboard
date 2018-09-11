@@ -6,7 +6,7 @@ namespace Assets.PseudoCardboard
 	[Serializable]
 	public class HmdParameters
 	{
-		[Range(0f, 2f)]
+        [Range(0f, 2f)]
 		public float DistortionK1 = 0.51f;
 
 		[Range(0f, 2f)]
@@ -21,6 +21,6 @@ namespace Assets.PseudoCardboard
 		[Range(0f, 0.1f)]
 		public float EyeOffsetY = 0.035f;
 
-		public FovAngles MaxFovAngles = new FovAngles { Left = 50, Right = 50, Top = 50, Bottom = 50 };
+		public Fov MaxFovAngles = new Fov { Left = 50, Right = 50, Top = 50, Bottom = 50 };
 	}
 }
