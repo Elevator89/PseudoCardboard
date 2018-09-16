@@ -490,8 +490,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4965fc58267176c48876f43bea97bb3b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SegmentWidth: 1
-  SegmentHeight: 1
+  SegmentWidth: 8
+  SegmentHeight: 8
   Width: 1
   Height: 1
 --- !u!114 &114346309184418270
