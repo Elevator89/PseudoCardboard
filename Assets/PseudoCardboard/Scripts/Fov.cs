@@ -3,17 +3,17 @@ using UnityEngine;
 
 namespace Assets.PseudoCardboard
 {
-	[Serializable]
-	public struct Fov
-	{
-		[Range(0f, 90f)]
-		public float Left;
-		[Range(0f, 90f)]
-		public float Right;
-		[Range(0f, 90f)]
-		public float Top;
-		[Range(0f, 90f)]
-		public float Bottom;
+    [Serializable]
+    public struct Fov
+    {
+        [Range(0f, 90f)]
+        public float Left;
+        [Range(0f, 90f)]
+        public float Right;
+        [Range(0f, 90f)]
+        public float Top;
+        [Range(0f, 90f)]
+        public float Bottom;
 
         public Fov(float left, float right, float bottom, float top)
         {
@@ -61,6 +61,33 @@ namespace Assets.PseudoCardboard
             return angles.GetAtan() * Mathf.Rad2Deg;
         }
 
+        public static Fov AnglesToTanAngles(Fov angles)
+        {
+            return (angles * Mathf.Deg2Rad).GetTan();
+        }
+
+        public static Fov Min(Fov fovA, Fov fovB)
+        {
+            return new Fov
+            {
+                Left = Mathf.Min(fovA.Left, fovB.Left),
+                Right = Mathf.Min(fovA.Right, fovB.Right),
+                Bottom = Mathf.Min(fovA.Bottom, fovB.Bottom),
+                Top = Mathf.Min(fovA.Top, fovB.Top),
+            };
+        }
+
+        public static Fov Max(Fov fovA, Fov fovB)
+        {
+            return new Fov
+            {
+                Left = Mathf.Max(fovA.Left, fovB.Left),
+                Right = Mathf.Max(fovA.Right, fovB.Right),
+                Bottom = Mathf.Max(fovA.Bottom, fovB.Bottom),
+                Top = Mathf.Max(fovA.Top, fovB.Top),
+            };
+        }
+
         public static Fov operator /(Fov fov, float value)
         {
             return new Fov
@@ -82,5 +109,5 @@ namespace Assets.PseudoCardboard
                 Top = fov.Top * value,
             };
         }
-	}
+    }
 }

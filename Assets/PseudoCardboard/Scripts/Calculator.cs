@@ -51,8 +51,10 @@ namespace Assets.PseudoCardboard
             // of the virtual-eye-to-screen distance.
             float eyeToScreenDist = hmd.ScreenToLensDist;
 
-            Fov fovDistances = GetFovDistancesLeft(display, hmd);
-            return fovDistances / eyeToScreenDist;
+            Fov hmdMaxFovTanAngles = Fov.AnglesToTanAngles(hmd.MaxFovAngles);
+            Fov displayFovTanAngles = GetFovDistancesLeft(display, hmd) / eyeToScreenDist;
+
+            return Fov.Min(displayFovTanAngles, hmdMaxFovTanAngles);
         }
 
         public static Rect GetViewportLeft(Fov fovDistances, float dpm)
