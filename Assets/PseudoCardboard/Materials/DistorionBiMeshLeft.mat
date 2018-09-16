@@ -76,5 +76,5 @@ Material:
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _ProjectionEyeLeft: {r: 0.5459992, g: 0.35507047, b: -0.60566723, a: -0.59336215}
-    - _ProjectionWorldLeft: {r: 0.3311317, g: 0.119576834, b: -0.6868203, a: -0.73376584}
+    - _ProjectionEyeLeft: {r: 0.54512423, g: 0.35507047, b: -0.6062992, a: -0.59336215}
+    - _ProjectionWorldLeft: {r: 0.32981357, g: 0.119576834, b: -0.68806696, a: -0.73376584}

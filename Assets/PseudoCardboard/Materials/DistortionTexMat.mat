@@ -31,7 +31,7 @@ Material:
     - _BackgroundColor: {r: 1, g: 0, b: 0, a: 0.541}
     - _DistortionParams: {r: -0.032, g: 0, b: 0.51, a: 0.16}
     - _DividerColor: {r: 0.6911765, g: 0.6911765, b: 0.6911765, a: 0.5}
-    - _ProjectionEyeLeft: {r: 0.5249344, g: 0.34015748, b: -0.6208807, a: -0.568441}
+    - _ProjectionEyeLeft: {r: 0.6041874, g: 0.5153901, b: -0.56364244, a: -0.50393707}
     - _ProjectionLeft: {r: 0.3076909, g: 0.2066738, b: -0.67553854, a: -0.5029449}
-    - _ProjectionWorldLeft: {r: 0.29914945, g: 0.11145219, b: -0.7170687, a: -0.6839099}
+    - _ProjectionWorldLeft: {r: 0.4156631, g: 0.31776908, b: -0.6068717, a: -0.50764334}
     - _UnprojectionLeft: {r: 0.52303183, g: 0.4210615, b: -0.5952729, a: -0.5012636}

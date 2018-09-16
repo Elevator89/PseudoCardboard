@@ -3,10 +3,10 @@ using UnityEngine.UI;
 
 namespace Assets.Scripts.GazeInput
 {
-	[RequireComponent(typeof(Image))]
+	[RequireComponent(typeof(Renderer))]
 	public class Reticle : MonoBehaviour
 	{
-		private Image _image;                     // Reference to the image component that represents the reticle.
+		private Renderer _renderer;                     // Reference to the image component that represents the reticle.
 
 		[SerializeField]
 		private float _defaultDistance = 10f;
@@ -18,17 +18,17 @@ namespace Assets.Scripts.GazeInput
 		{
 			_originalPosition = transform.localPosition;
 			_originalScale = transform.localScale;
-			_image = GetComponent<Image>();
+			_renderer = GetComponent<Renderer>();
 		}
 
 		public void Hide()
 		{
-			_image.enabled = false;
+			_renderer.enabled = false;
 		}
 
 		public void Show()
 		{
-			_image.enabled = true;
+			_renderer.enabled = true;
 		}
 
 		public void SetPosition(Vector3 worldPosition, float distance)

@@ -16,7 +16,6 @@ namespace Assets.PseudoCardboard.Scripts
         private Camera _camWorldRight;
         private FovScaler _camWorldRightScaler;
 
-
         [SerializeField]
         private Camera _camEyeLeft;
 
@@ -46,8 +45,6 @@ namespace Assets.PseudoCardboard.Scripts
 
         void Update()
         {
-            //Debug.LogFormat("{0}x{1}", screenWidthMeters, screenHeightMeters);
-
             _distortion.DistortionK1 = Hmd.DistortionK1;
             _distortion.DistortionK2 = Hmd.DistortionK2;
 
@@ -88,43 +85,8 @@ namespace Assets.PseudoCardboard.Scripts
             _camEyeLeft.projectionMatrix = projEyeLeft;
             _camEyeRight.projectionMatrix = projEyeRight;
 
-            UpdateBarrelDistortion(EyeMaterial, viewportEyeLeft, projWorldLeft, projEyeLeft);
-        }
-
-        // Set barrel_distortion parameters given CardboardView.
-        private void UpdateBarrelDistortion(Material distortionShader, Rect viewportEyeLeft, Matrix4x4 projWorldLeft, Matrix4x4 projEyeLeft)
-        {
-            // Shader params include parts of the projection matrices needed to
-            // convert texture coordinates between distorted and undistorted
-            // frustums.  The projections are adjusted to include transform between
-            // texture space [0..1] and NDC [-1..1] as well as accounting for the
-            // viewport on the screen.
-            // TODO: have explicit viewport transform in shader for simplicity
-
-            distortionShader.SetFloat("_DistortionK1", Hmd.DistortionK1);
-            distortionShader.SetFloat("_DistortionK2", Hmd.DistortionK2);
-
-            Vector4 projWorldLine =
-                new Vector4(
-                    projWorldLeft[0, 0],
-                    projWorldLeft[1, 1],
-                    projWorldLeft[0, 2] - 1,
-                    projWorldLeft[1, 2] - 1) / 2.0f;
-
-            var x_scale = viewportEyeLeft.width / (0.5f * Display.Resolution.x);
-            var y_scale = viewportEyeLeft.height / Display.Resolution.y;
-            var x_trans = 2 * (viewportEyeLeft.x + 0.5f * viewportEyeLeft.width) / (0.5f * Display.Resolution.x) - 1;
-            var y_trans = 2 * (viewportEyeLeft.y + 0.5f * viewportEyeLeft.height) / Display.Resolution.y - 1;
-
-            Vector4 projEyeLine =
-                new Vector4(
-                    projEyeLeft[0, 0] * x_scale,
-                    projEyeLeft[1, 1] * y_scale,
-                    projEyeLeft[0, 2] - 1 - x_trans,
-                    projEyeLeft[1, 2] - 1 - y_trans) / 2.0f;
-
-            distortionShader.SetVector("_ProjectionWorldLeft", projWorldLine);
-            distortionShader.SetVector("_ProjectionEyeLeft", projEyeLine);
+            EyeMaterial.SetFloat("_DistortionK1", Hmd.DistortionK1);
+            EyeMaterial.SetFloat("_DistortionK2", Hmd.DistortionK2);
         }
     }
 }
