@@ -3,7 +3,6 @@
 namespace Assets.PseudoCardboard.Scripts
 {
     [ExecuteInEditMode]
-    [RequireComponent(typeof(Camera))]
     public class VrCameraBiMesh : MonoBehaviour
     {
         public Material EyeMaterial;
