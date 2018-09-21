@@ -26,6 +26,10 @@ namespace Assets.Scripts.UI
         private Slider FovTopSlider;
         [SerializeField]
         private Slider FovBottomSlider;
+        [SerializeField]
+        private Toggle GridToggle;
+        [SerializeField]
+        private GameObject GridCm;
 
         void Start()
         {
@@ -40,6 +44,7 @@ namespace Assets.Scripts.UI
             FovRightSlider.value = _hmd.MaxFovAngles.Right;
             FovTopSlider.value = _hmd.MaxFovAngles.Top;
             FovBottomSlider.value = _hmd.MaxFovAngles.Bottom;
+            GridToggle.isOn = false;
 
             InterlensDistanceSlider.onValueChanged.AddListener((val) => _hmd.InterlensDistance = 0.001f * val);
             ScreenToLensDistSlider.onValueChanged.AddListener((val) => _hmd.ScreenToLensDist = 0.001f * val);
@@ -50,6 +55,7 @@ namespace Assets.Scripts.UI
             FovRightSlider.onValueChanged.AddListener((val) => _hmd.MaxFovAngles = new Fov(_hmd.MaxFovAngles.Left, val, _hmd.MaxFovAngles.Bottom, _hmd.MaxFovAngles.Top));
             FovTopSlider.onValueChanged.AddListener((val) => _hmd.MaxFovAngles = new Fov(_hmd.MaxFovAngles.Left, _hmd.MaxFovAngles.Right, _hmd.MaxFovAngles.Bottom, val));
             FovBottomSlider.onValueChanged.AddListener((val) => _hmd.MaxFovAngles = new Fov(_hmd.MaxFovAngles.Left, _hmd.MaxFovAngles.Right, val, _hmd.MaxFovAngles.Top));
+            GridToggle.onValueChanged.AddListener((val) => GridCm.SetActive(val));
         }
 
         //public void InterlensDistance(float value)
