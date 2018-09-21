@@ -102,9 +102,7 @@ namespace Assets.Scripts.GazeInput
 			//We've made some changes internally to the Camera viewport rects to fix viewport issues in VR. 
 			//With this change, the Screen.width and height no longer represent the resolution of the HMD. 
 			//Screen represents the game view and the HMD resolution is now represented by VRSettings.eyeTextureWidth and VRSettings.eyeTextureHeight.
-			pointerData.position = VRSettings.enabled
-				? new Vector2(0.5f * VRSettings.eyeTextureWidth, 0.5f * VRSettings.eyeTextureHeight)
-				: new Vector2(hotspot.x * Screen.width, hotspot.y * Screen.height);
+			pointerData.position = new Vector2(hotspot.x * Screen.width, hotspot.y * Screen.height);
 
 			eventSystem.RaycastAll(pointerData, m_RaycastResultCache);
 

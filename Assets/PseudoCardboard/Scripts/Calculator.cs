@@ -57,13 +57,13 @@ namespace Assets.PseudoCardboard
             return Fov.Min(displayFovTanAngles, hmdMaxFovTanAngles);
         }
 
-        public static Rect GetViewportLeft(Fov fovDistances, float dpm)
+        public static Rect GetViewportLeft(Fov fovDistances, Vector2 dpm)
         {
             return new Rect(
                 0,
                 0,
-                (fovDistances.Left + fovDistances.Right) * dpm,
-                (fovDistances.Bottom + fovDistances.Top) * dpm);
+                (fovDistances.Left + fovDistances.Right) * dpm.x,
+                (fovDistances.Bottom + fovDistances.Top) * dpm.y);
         }
 
         private static Fov GetFovDistancesLeft(DisplayParameters display, HmdParameters hmd)

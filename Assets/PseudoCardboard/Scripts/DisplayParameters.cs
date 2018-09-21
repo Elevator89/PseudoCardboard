@@ -13,14 +13,27 @@ namespace Assets.PseudoCardboard
             get { return new Vector2(Display.main.renderingWidth, Display.main.renderingHeight); }
         }
 
-        public float Dpi
+        public Vector2 Dpi
         {
-            get { return Screen.dpi; }
+            get
+            {
+#if UNITY_ANDROID && !UNITY_EDITOR
+                AndroidJavaClass activityClass = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+                AndroidJavaObject activity = activityClass.GetStatic<AndroidJavaObject>("currentActivity");
+
+                AndroidJavaObject metrics = new AndroidJavaObject("android.util.DisplayMetrics");
+                activity.Call<AndroidJavaObject>("getWindowManager").Call<AndroidJavaObject>("getDefaultDisplay").Call("getMetrics", metrics);
+
+                return new Vector2(metrics.Get<float>("xdpi"), metrics.Get<float>("ydpi"));
+#else
+                return new Vector2(Screen.dpi, Screen.dpi);
+#endif
+            }
         }
 
-        public float Dpm
+        public Vector2 Dpm
         {
-            get { return Screen.dpi / MetersPerInch; }
+            get { return Dpi / MetersPerInch; }
         }
 
         public Vector2 Size
@@ -28,8 +41,8 @@ namespace Assets.PseudoCardboard
             get
             {
                 return new Vector2(
-                    Display.main.renderingWidth / Dpm,
-                    Display.main.renderingHeight / Dpm);
+                    Display.main.renderingWidth / Dpm.x,
+                    Display.main.renderingHeight / Dpm.y);
             }
         }
     }

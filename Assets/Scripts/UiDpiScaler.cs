@@ -5,7 +5,7 @@ namespace Assets.Scripts
 {
     [ExecuteInEditMode]
     [RequireComponent(typeof(RectTransform))]
-    public class UiDpiScaler: MonoBehaviour
+    public class UiDpiScaler : MonoBehaviour
     {
         public int TargetUnitsInMeter = 100 * 100; // 100 units per cm, 100 cm in 1 m
 
@@ -13,7 +13,11 @@ namespace Assets.Scripts
         {
             DisplayParameters displayParameters = new DisplayParameters();
 
-            GetComponent<RectTransform>().localScale = Vector3.one * displayParameters.Dpm / TargetUnitsInMeter;
+            GetComponent<RectTransform>().localScale = 
+                new Vector3(
+                    displayParameters.Dpm.x / TargetUnitsInMeter, 
+                    displayParameters.Dpm.y / TargetUnitsInMeter, 
+                    1f);
         }
     }
 }
