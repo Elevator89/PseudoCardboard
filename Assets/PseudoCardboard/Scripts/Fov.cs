@@ -1,18 +1,12 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Assets.PseudoCardboard
 {
-    [Serializable]
     public struct Fov
     {
-        [Range(0f, 90f)]
         public float Left;
-        [Range(0f, 90f)]
         public float Right;
-        [Range(0f, 90f)]
         public float Top;
-        [Range(0f, 90f)]
         public float Bottom;
 
         public Fov(float left, float right, float bottom, float top)

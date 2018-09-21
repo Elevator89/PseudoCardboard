@@ -28,7 +28,7 @@ namespace Assets.PseudoCardboard.Scripts
 
         void OnEnable()
         {
-            Hmd = FindObjectOfType<HmdParamRoot>().HmdParameters;
+            Hmd = HmdParameters.Instance;
             Display = new DisplayParameters();
 
             _camWorldLeft.transform.localRotation = Quaternion.identity;

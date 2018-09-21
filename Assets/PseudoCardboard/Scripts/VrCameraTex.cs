@@ -18,7 +18,7 @@ namespace Assets.PseudoCardboard
 
         void OnEnable()
         {
-            Hmd = FindObjectOfType<HmdParamRoot>().HmdParameters;
+            Hmd = HmdParameters.Instance;
             Display = new DisplayParameters();
 
             _leftWorldCam = GetComponentsInChildren<Camera>().First(cam => cam.stereoTargetEye == StereoTargetEyeMask.Left);

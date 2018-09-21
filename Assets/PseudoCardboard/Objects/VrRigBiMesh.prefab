@@ -196,7 +196,7 @@ GameObject:
   - component: {fileID: 4706718311112932}
   - component: {fileID: 212583941635136030}
   - component: {fileID: 114605826745384886}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Reticle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -210,8 +210,8 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1745828583327976}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.25711146, y: -0.024052918, z: 1}
-  m_LocalScale: {x: 2.4057949, y: 3.1469393, z: 1}
+  m_LocalPosition: {x: -0.74692106, y: 0.4210528, z: 1}
+  m_LocalScale: {x: 3.3854141, y: 4.0371504, z: 1}
   m_Children: []
   m_Father: {fileID: 4471725326706868}
   m_RootOrder: 0
@@ -250,8 +250,8 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1592104841444498}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.25711146, y: -0.024052918, z: 1}
-  m_LocalScale: {x: 2.4057949, y: 3.1469393, z: 1}
+  m_LocalPosition: {x: 0.74692106, y: 0.4210528, z: 1}
+  m_LocalScale: {x: 3.3854141, y: 4.0371504, z: 1}
   m_Children: []
   m_Father: {fileID: 4391408779703962}
   m_RootOrder: 0
@@ -743,7 +743,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 914bf69d0f269dd499b44cb1cce87890, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _defaultDistance: 10
+  _defaultDistance: 5
 --- !u!114 &114776129241409130
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -854,7 +854,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1000
   m_Sprite: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
   m_Color: {r: 0, g: 0.8758622, b: 1, a: 1}
   m_FlipX: 0

@@ -21,7 +21,7 @@ namespace Assets.PseudoCardboard
 
         void OnEnable()
         {
-            Hmd = FindObjectOfType<HmdParamRoot>().HmdParameters;
+            Hmd = HmdParameters.Instance;
             Display = new DisplayParameters();
 
             _centralCam = GetComponent<Camera>();
