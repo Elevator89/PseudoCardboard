@@ -5,7 +5,8 @@ namespace Assets.PseudoCardboard.Scripts
     [ExecuteInEditMode]
     public class VrCameraBiMesh : MonoBehaviour
     {
-        public Material EyeMaterial;
+        public Material EyeMaterialLeft;
+        public Material EyeMaterialRight;
 
         [SerializeField]
         private Camera _camWorldLeft;
@@ -84,8 +85,11 @@ namespace Assets.PseudoCardboard.Scripts
             _camEyeLeft.projectionMatrix = projEyeLeft;
             _camEyeRight.projectionMatrix = projEyeRight;
 
-            EyeMaterial.SetFloat("_DistortionK1", Hmd.DistortionK1);
-            EyeMaterial.SetFloat("_DistortionK2", Hmd.DistortionK2);
+            EyeMaterialLeft.SetFloat("_DistortionK1", Hmd.DistortionK1);
+            EyeMaterialRight.SetFloat("_DistortionK1", Hmd.DistortionK1);
+
+            EyeMaterialLeft.SetFloat("_DistortionK2", Hmd.DistortionK2);
+            EyeMaterialRight.SetFloat("_DistortionK2", Hmd.DistortionK2);
         }
     }
 }
