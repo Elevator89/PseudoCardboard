@@ -30,21 +30,18 @@ namespace Assets.Scripts.UI
         private Toggle GridToggle;
         [SerializeField]
         private GameObject GridCm;
+        [SerializeField]
+        private Button RestoreDefaultsButton;
+        [SerializeField]
+        private Button LoadButton;
+        [SerializeField]
+        private Button SaveButton;
 
         void Start()
         {
             _hmd = HmdParameters.Instance;
 
-            InterlensDistanceSlider.value = 1000f * _hmd.InterlensDistance;
-            ScreenToLensDistSlider.value = 1000f * _hmd.ScreenToLensDist;
-            EyeOffsetYSlider.value = 1000f * _hmd.EyeOffsetY;
-            DistortionK1Slider.value = _hmd.DistortionK1;
-            DistortionK2Slider.value = _hmd.DistortionK2;
-            FovLeftSlider.value = _hmd.MaxFovAngles.Left;
-            FovRightSlider.value = _hmd.MaxFovAngles.Right;
-            FovTopSlider.value = _hmd.MaxFovAngles.Top;
-            FovBottomSlider.value = _hmd.MaxFovAngles.Bottom;
-            GridToggle.isOn = false;
+            UpdateControls();
 
             InterlensDistanceSlider.onValueChanged.AddListener((val) => _hmd.InterlensDistance = 0.001f * val);
             ScreenToLensDistSlider.onValueChanged.AddListener((val) => _hmd.ScreenToLensDist = 0.001f * val);
@@ -56,51 +53,42 @@ namespace Assets.Scripts.UI
             FovTopSlider.onValueChanged.AddListener((val) => _hmd.MaxFovAngles = new Fov(_hmd.MaxFovAngles.Left, _hmd.MaxFovAngles.Right, _hmd.MaxFovAngles.Bottom, val));
             FovBottomSlider.onValueChanged.AddListener((val) => _hmd.MaxFovAngles = new Fov(_hmd.MaxFovAngles.Left, _hmd.MaxFovAngles.Right, val, _hmd.MaxFovAngles.Top));
             GridToggle.onValueChanged.AddListener((val) => GridCm.SetActive(val));
+
+            RestoreDefaultsButton.onClick.AddListener(RestoreDefaultSettings);
+            LoadButton.onClick.AddListener(LoadSettings);
+            SaveButton.onClick.AddListener(SaveSettings);
         }
 
-        //public void InterlensDistance(float value)
-        //{
-        //	Hmd.InterlensDistance = value;
-        //}
+        private void UpdateControls()
+        {
+            InterlensDistanceSlider.value = 1000f * _hmd.InterlensDistance;
+            ScreenToLensDistSlider.value = 1000f * _hmd.ScreenToLensDist;
+            EyeOffsetYSlider.value = 1000f * _hmd.EyeOffsetY;
+            DistortionK1Slider.value = _hmd.DistortionK1;
+            DistortionK2Slider.value = _hmd.DistortionK2;
+            FovLeftSlider.value = _hmd.MaxFovAngles.Left;
+            FovRightSlider.value = _hmd.MaxFovAngles.Right;
+            FovTopSlider.value = _hmd.MaxFovAngles.Top;
+            FovBottomSlider.value = _hmd.MaxFovAngles.Bottom;
+            GridToggle.isOn = false;
+        }
 
-        //public void ScreenToLensDist(float value)
-        //{
-        //	Hmd.ScreenToLensDist = value;
-        //}
+        public void SaveSettings()
+        {
+            _hmd.SaveToPrefs();
+            UpdateControls();
+        }
 
-        //public void EyeOffsetY(float value)
-        //{
-        //	Hmd.EyeOffsetY = value;
-        //}
+        public void LoadSettings()
+        {
+            _hmd.LoadFromPrefs();
+            UpdateControls();
+        }
 
-        //public void DistortionK1(float value)
-        //{
-        //	Hmd.DistortionK1 = value;
-        //}
-
-        //public void DistortionK2(float value)
-        //{
-        //	Hmd.DistortionK2 = value;
-        //}
-
-        //public void SetFovLeft(float value)
-        //{
-        //	Hmd.MaxFovAngles.Left = value;
-        //}
-
-        //public void SetFovRight(float value)
-        //{
-        //	Hmd.MaxFovAngles.Right = value;
-        //}
-
-        //public void SetFovTop(float value)
-        //{
-        //	Hmd.MaxFovAngles.Top = value;
-        //}
-
-        //public void SetFovBottom(float value)
-        //{
-        //	Hmd.MaxFovAngles.Bottom = value;
-        //}
+        public void RestoreDefaultSettings()
+        {
+            _hmd.LoadDefaults();
+            UpdateControls();
+        }
     }
 }

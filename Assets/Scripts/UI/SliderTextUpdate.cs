@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 namespace Assets.Scripts.UI
@@ -17,14 +13,20 @@ namespace Assets.Scripts.UI
 		[SerializeField]
 		private int Decimals = 0;
 
-		void Awake()
+		void OnEnable()
 		{
 			Slider = GetComponent<Slider>();
-		}
+            Slider.onValueChanged.AddListener(UpdateText);
+        }
 
-		public void UpdateText()
+	    void OnDisable()
+	    {
+            Slider.onValueChanged.RemoveListener(UpdateText);
+        }
+
+        private void UpdateText(float value)
 		{
-			Text.text = Slider.value.ToString("N" + Decimals);
+			Text.text = value.ToString("N" + Decimals);
 		}
 	}
 }
