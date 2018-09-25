@@ -3,7 +3,8 @@ using UnityEngine.UI;
 
 namespace Assets.Scripts.UI
 {
-	[RequireComponent(typeof(Slider))]
+    [ExecuteInEditMode]
+    [RequireComponent(typeof(Slider))]
 	public class SliderTextUpdate : MonoBehaviour
 	{
 		private Slider Slider;
@@ -13,9 +14,13 @@ namespace Assets.Scripts.UI
 		[SerializeField]
 		private int Decimals = 0;
 
-		void OnEnable()
+	    void Awake()
+	    {
+            Slider = GetComponent<Slider>();
+        }
+
+        void OnEnable()
 		{
-			Slider = GetComponent<Slider>();
             Slider.onValueChanged.AddListener(UpdateText);
         }
 
