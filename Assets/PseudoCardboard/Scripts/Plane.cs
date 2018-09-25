@@ -2,13 +2,17 @@
 
 namespace Assets.PseudoCardboard.Scripts
 {
-    [ExecuteInEditMode]
-    [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
-    public class Plane : MonoBehaviour
+    public class PlaneMeshBase : MonoBehaviour
     {
         public int SegmentWidth = 8;
         public int SegmentHeight = 5;
+    }
 
+
+    [ExecuteInEditMode]
+    [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
+    public class Plane : PlaneMeshBase
+    {
         public int Width = 4;
         public int Height = 4;
 

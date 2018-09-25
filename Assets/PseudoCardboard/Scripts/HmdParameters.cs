@@ -26,10 +26,10 @@ namespace Assets.PseudoCardboard
             EyeOffsetY = 0.035f,
             MaxFovAngles = new Fov
             {
-                Left = SafeGetFloat("FovLeft", 50),
-                Right = SafeGetFloat("FovRight", 50),
-                Top = SafeGetFloat("FovTop", 50),
-                Bottom = SafeGetFloat("FovBottom", 50)
+                Left = PlayerPrefsExt.SafeGetFloat("FovLeft", 50),
+                Right = PlayerPrefsExt.SafeGetFloat("FovRight", 50),
+                Top = PlayerPrefsExt.SafeGetFloat("FovTop", 50),
+                Bottom = PlayerPrefsExt.SafeGetFloat("FovBottom", 50)
             }
         };
 
@@ -72,17 +72,17 @@ namespace Assets.PseudoCardboard
 
         public void LoadFromPrefs()
         {
-            ScreenToLensDist = SafeGetFloat(ScreenToLensDistFieldName, DefaultValues.ScreenToLensDist);
-            DistortionK1 = SafeGetFloat(DistortionK1FieldName, DefaultValues.DistortionK1);
-            DistortionK2 = SafeGetFloat(DistortionK2FieldName, DefaultValues.DistortionK2);
-            InterlensDistance = SafeGetFloat(InterlensDistanceFieldName, DefaultValues.InterlensDistance);
-            EyeOffsetY = SafeGetFloat(EyeOffsetYFieldName, DefaultValues.EyeOffsetY);
+            ScreenToLensDist = PlayerPrefsExt.SafeGetFloat(ScreenToLensDistFieldName, DefaultValues.ScreenToLensDist);
+            DistortionK1 = PlayerPrefsExt.SafeGetFloat(DistortionK1FieldName, DefaultValues.DistortionK1);
+            DistortionK2 = PlayerPrefsExt.SafeGetFloat(DistortionK2FieldName, DefaultValues.DistortionK2);
+            InterlensDistance = PlayerPrefsExt.SafeGetFloat(InterlensDistanceFieldName, DefaultValues.InterlensDistance);
+            EyeOffsetY = PlayerPrefsExt.SafeGetFloat(EyeOffsetYFieldName, DefaultValues.EyeOffsetY);
             MaxFovAngles = new Fov
             {
-                Left = SafeGetFloat(MaxFovAnglesLeftFieldName, DefaultValues.MaxFovAngles.Left),
-                Right = SafeGetFloat(MaxFovAnglesRightFieldName, DefaultValues.MaxFovAngles.Right),
-                Top = SafeGetFloat(MaxFovAnglesTopFieldName, DefaultValues.MaxFovAngles.Top),
-                Bottom = SafeGetFloat(MaxFovAnglesBottomFieldName, DefaultValues.MaxFovAngles.Bottom)
+                Left = PlayerPrefsExt.SafeGetFloat(MaxFovAnglesLeftFieldName, DefaultValues.MaxFovAngles.Left),
+                Right = PlayerPrefsExt.SafeGetFloat(MaxFovAnglesRightFieldName, DefaultValues.MaxFovAngles.Right),
+                Top = PlayerPrefsExt.SafeGetFloat(MaxFovAnglesTopFieldName, DefaultValues.MaxFovAngles.Top),
+                Bottom = PlayerPrefsExt.SafeGetFloat(MaxFovAnglesBottomFieldName, DefaultValues.MaxFovAngles.Bottom)
             };
         }
 
@@ -94,16 +94,6 @@ namespace Assets.PseudoCardboard
             InterlensDistance = DefaultValues.InterlensDistance;
             EyeOffsetY = DefaultValues.EyeOffsetY;
             MaxFovAngles = DefaultValues.MaxFovAngles;
-        }
-
-        private static float SafeGetFloat(string key, float defaultValue)
-        {
-            if (!PlayerPrefs.HasKey(key))
-            {
-                PlayerPrefs.SetFloat(key, defaultValue);
-            }
-
-            return PlayerPrefs.GetFloat(key);
         }
     }
 }

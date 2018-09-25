@@ -4,11 +4,8 @@ namespace Assets.PseudoCardboard.Scripts
 {
     [ExecuteInEditMode]
     [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
-    public class PlaneSplitted : MonoBehaviour
+    public class PlaneSplitted : PlaneMeshBase
     {
-        public int SegmentWidth = 8;
-        public int SegmentHeight = 5;
-
         public int Width = 4;
         public int Height = 4;
 

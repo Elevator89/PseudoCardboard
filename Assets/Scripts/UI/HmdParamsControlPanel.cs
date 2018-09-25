@@ -7,6 +7,7 @@ namespace Assets.Scripts.UI
     public class HmdParamsControlPanel : MonoBehaviour
     {
         private HmdParameters _hmd;
+        private MeshParameters _mesh;
 
         [SerializeField]
         private Slider InterlensDistanceSlider;
@@ -14,10 +15,12 @@ namespace Assets.Scripts.UI
         private Slider ScreenToLensDistSlider;
         [SerializeField]
         private Slider EyeOffsetYSlider;
+
         [SerializeField]
         private Slider DistortionK1Slider;
         [SerializeField]
         private Slider DistortionK2Slider;
+
         [SerializeField]
         private Slider FovLeftSlider;
         [SerializeField]
@@ -26,10 +29,18 @@ namespace Assets.Scripts.UI
         private Slider FovTopSlider;
         [SerializeField]
         private Slider FovBottomSlider;
+
         [SerializeField]
         private Toggle GridToggle;
+
         [SerializeField]
         private GameObject GridCm;
+
+        [SerializeField]
+        private Slider MeshVerticalSegmentsSlider;
+        [SerializeField]
+        private Slider MeshHorizontalSegmentsSlider;
+
         [SerializeField]
         private Button RestoreDefaultsButton;
         [SerializeField]
@@ -40,6 +51,7 @@ namespace Assets.Scripts.UI
         void Start()
         {
             _hmd = HmdParameters.Instance;
+            _mesh = MeshParameters.Instance;
 
             UpdateControls();
 
@@ -52,6 +64,10 @@ namespace Assets.Scripts.UI
             FovRightSlider.onValueChanged.AddListener((val) => _hmd.MaxFovAngles = new Fov(_hmd.MaxFovAngles.Left, val, _hmd.MaxFovAngles.Bottom, _hmd.MaxFovAngles.Top));
             FovTopSlider.onValueChanged.AddListener((val) => _hmd.MaxFovAngles = new Fov(_hmd.MaxFovAngles.Left, _hmd.MaxFovAngles.Right, _hmd.MaxFovAngles.Bottom, val));
             FovBottomSlider.onValueChanged.AddListener((val) => _hmd.MaxFovAngles = new Fov(_hmd.MaxFovAngles.Left, _hmd.MaxFovAngles.Right, val, _hmd.MaxFovAngles.Top));
+
+            MeshHorizontalSegmentsSlider.onValueChanged.AddListener((val) => _mesh.SegmentWidth = (int)val);
+            MeshVerticalSegmentsSlider.onValueChanged.AddListener((val) => _mesh.SegmentHeight = (int)val);
+
             GridToggle.onValueChanged.AddListener((val) => GridCm.SetActive(val));
 
             RestoreDefaultsButton.onClick.AddListener(RestoreDefaultSettings);
@@ -70,6 +86,10 @@ namespace Assets.Scripts.UI
             FovRightSlider.value = _hmd.MaxFovAngles.Right;
             FovTopSlider.value = _hmd.MaxFovAngles.Top;
             FovBottomSlider.value = _hmd.MaxFovAngles.Bottom;
+
+            MeshHorizontalSegmentsSlider.value = _mesh.SegmentWidth;
+            MeshVerticalSegmentsSlider.value = _mesh.SegmentHeight;
+
             GridToggle.isOn = false;
         }
 
