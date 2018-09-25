@@ -36,8 +36,8 @@ namespace Assets.PseudoCardboard
 
         public void SaveToPrefs()
         {
-            PlayerPrefs.SetFloat(SegmentWidthFieldName, SegmentWidth);
-            PlayerPrefs.SetFloat(SegmentHeightFieldName, SegmentHeight);
+            PlayerPrefs.SetInt(SegmentWidthFieldName, SegmentWidth);
+            PlayerPrefs.SetInt(SegmentHeightFieldName, SegmentHeight);
         }
 
         public void LoadFromPrefs()

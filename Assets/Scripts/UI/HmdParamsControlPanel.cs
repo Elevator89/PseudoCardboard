@@ -96,18 +96,21 @@ namespace Assets.Scripts.UI
         public void SaveSettings()
         {
             _hmd.SaveToPrefs();
+            _mesh.SaveToPrefs();
             UpdateControls();
         }
 
         public void LoadSettings()
         {
             _hmd.LoadFromPrefs();
+            _mesh.LoadFromPrefs();
             UpdateControls();
         }
 
         public void RestoreDefaultSettings()
         {
             _hmd.LoadDefaults();
+            _mesh.LoadDefaults();
             UpdateControls();
         }
     }
