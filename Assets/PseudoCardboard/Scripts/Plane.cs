@@ -2,36 +2,44 @@
 
 namespace Assets.PseudoCardboard.Scripts
 {
-    public class PlaneMeshBase : MonoBehaviour
-    {
-        public int SegmentWidth = 8;
-        public int SegmentHeight = 5;
-    }
-
-
     [ExecuteInEditMode]
     [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
-    public class Plane : PlaneMeshBase
+    public class Plane : MonoBehaviour
     {
         public int Width = 4;
         public int Height = 4;
 
+        MeshParameters _meshParams;
+
+        void Awake()
+        {
+            _meshParams = MeshParameters.Instance;
+            Refresh(_meshParams.SegmentWidth, _meshParams.SegmentHeight);
+        }
+
         void OnEnable()
         {
-            Generate();
+            _meshParams.ParamsChanged.AddListener(Refresh);
+        }
+
+        void OnDisable()
+        {
+            _meshParams.ParamsChanged.RemoveListener(Refresh);
         }
 
         private Mesh mesh;
 
-        private void Generate()
+        public void Refresh(int segmentWidth, int segmentHeight)
         {
+            DestroyImmediate(mesh);
+
             GetComponent<MeshFilter>().mesh = mesh = new Mesh();
             mesh.name = "Procedural Grid";
 
             const float epsilon = 0.00001f;
 
             int baseInd = 0;
-            int limit = (SegmentWidth + 1) * (SegmentHeight + 1);
+            int limit = (segmentWidth + 1) * (segmentHeight + 1);
 
             Vector3[] vertices = new Vector3[limit];
             Vector2[] uv = new Vector2[limit];
@@ -39,15 +47,15 @@ namespace Assets.PseudoCardboard.Scripts
             float startX = -0.5f * Width;
             float startY = -0.5f * Height;
 
-            float stepX = Width / (float)SegmentWidth;
-            float stepY = Height / (float)SegmentHeight;
+            float stepX = Width / (float)segmentWidth;
+            float stepY = Height / (float)segmentHeight;
 
-            for (int i = 0, y = 0; y <= SegmentHeight; y++)
+            for (int i = 0, y = 0; y <= segmentHeight; y++)
             {
-                for (int x = 0; x <= SegmentWidth; x++, i++)
+                for (int x = 0; x <= segmentWidth; x++, i++)
                 {
                     vertices[baseInd + i] = new Vector3(startX + x * stepX, startY + y * stepY);
-                    uv[baseInd + i] = new Vector2(x / (float)SegmentWidth, y / (float)SegmentHeight);
+                    uv[baseInd + i] = new Vector2(x / (float)segmentWidth, y / (float)segmentHeight);
                 }
             }
 
@@ -55,18 +63,18 @@ namespace Assets.PseudoCardboard.Scripts
             mesh.uv = uv;
 
             int baseTri = 0;
-            int triLimit = SegmentWidth * SegmentHeight * 6;
+            int triLimit = segmentWidth * segmentHeight * 6;
 
             int[] triangles = new int[2 * triLimit];
 
-            for (int ti = 0, vi = baseInd, y = 0; y < SegmentHeight; y++, vi++)
+            for (int ti = 0, vi = baseInd, y = 0; y < segmentHeight; y++, vi++)
             {
-                for (int x = 0; x < SegmentWidth; x++, ti += 6, vi++)
+                for (int x = 0; x < segmentWidth; x++, ti += 6, vi++)
                 {
                     triangles[baseTri + ti] = vi;
                     triangles[baseTri + ti + 3] = triangles[baseTri + ti + 2] = vi + 1;
-                    triangles[baseTri + ti + 4] = triangles[baseTri + ti + 1] = vi + SegmentWidth + 1;
-                    triangles[baseTri + ti + 5] = vi + SegmentWidth + 2;
+                    triangles[baseTri + ti + 4] = triangles[baseTri + ti + 1] = vi + segmentWidth + 1;
+                    triangles[baseTri + ti + 5] = vi + segmentWidth + 2;
                 }
             }
             mesh.triangles = triangles;
