@@ -11,14 +11,10 @@ namespace Assets.PseudoCardboard.Scripts
 
         MeshParameters _meshParams;
 
-        void Awake()
+        void OnEnable()
         {
             _meshParams = MeshParameters.Instance;
             Refresh(_meshParams.SegmentWidth, _meshParams.SegmentHeight);
-        }
-
-        void OnEnable()
-        {
             _meshParams.ParamsChanged.AddListener(Refresh);
         }
 

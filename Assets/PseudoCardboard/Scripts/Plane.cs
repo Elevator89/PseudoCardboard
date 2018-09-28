@@ -11,14 +11,10 @@ namespace Assets.PseudoCardboard.Scripts
 
         MeshParameters _meshParams;
 
-        void Awake()
+        void OnEnable()
         {
             _meshParams = MeshParameters.Instance;
             Refresh(_meshParams.SegmentWidth, _meshParams.SegmentHeight);
-        }
-
-        void OnEnable()
-        {
             _meshParams.ParamsChanged.AddListener(Refresh);
         }
 
@@ -39,7 +35,7 @@ namespace Assets.PseudoCardboard.Scripts
             const float epsilon = 0.00001f;
 
             int baseInd = 0;
-            int limit = (segmentWidth + 1) * (segmentHeight + 1);
+            int limit = (segmentWidth + 1) * (segmentHeight + 1); 
 
             Vector3[] vertices = new Vector3[limit];
             Vector2[] uv = new Vector2[limit];
