@@ -6,7 +6,7 @@ namespace Assets.PseudoCardboard.Editor
     [ExecuteInEditMode]
     public class HmdParamsWindow : EditorWindow
     {
-        [MenuItem("PseudoVR/HMD settings...", false, 200)]
+        [MenuItem("PseudoVR/Settings...", false, 200)]
         private static void OpenSettings()
         {
             HmdParamsWindow window = GetWindow<HmdParamsWindow>();
@@ -19,6 +19,10 @@ namespace Assets.PseudoCardboard.Editor
         private void OnGUI()
         {
             HmdParameters hmd = HmdParameters.Instance;
+            MeshParameters mesh = MeshParameters.Instance;
+
+            EditorGUILayout.BeginVertical("box");
+            EditorGUILayout.LabelField("HMD Settings");
 
             hmd.DistortionK1 = EditorGUILayout.Slider("DistortionK1", hmd.DistortionK1, 0f, 2f, GUILayout.ExpandWidth(true));
             hmd.DistortionK2 = EditorGUILayout.Slider("DistortionK2", hmd.DistortionK2, 0f, 2f, GUILayout.ExpandWidth(true));
@@ -27,7 +31,7 @@ namespace Assets.PseudoCardboard.Editor
             hmd.EyeOffsetY = EditorGUILayout.Slider("EyeOffsetY", hmd.EyeOffsetY, 0f, 0.2f, GUILayout.ExpandWidth(true));
 
             EditorGUILayout.BeginVertical("box");
-            EditorGUILayout.LabelField("FoV Settings");
+            EditorGUILayout.LabelField("FoV");
             float fovLeft = EditorGUILayout.Slider("Left", hmd.MaxFovAngles.Left, 0f, 89f, GUILayout.ExpandWidth(true));
             float fovRight = EditorGUILayout.Slider("Right", hmd.MaxFovAngles.Right, 0f, 89f, GUILayout.ExpandWidth(true));
             float fovTop = EditorGUILayout.Slider("Top", hmd.MaxFovAngles.Top, 0f, 89f, GUILayout.ExpandWidth(true));
@@ -36,14 +40,20 @@ namespace Assets.PseudoCardboard.Editor
             hmd.MaxFovAngles = new Fov(fovLeft, fovRight, fovBottom, fovTop);
             EditorGUILayout.EndVertical();
 
+            EditorGUILayout.EndVertical();
+
+            EditorGUILayout.BeginVertical("box");
+            EditorGUILayout.LabelField("Mesh Settings");
+
+            mesh.SegmentWidth = EditorGUILayout.IntSlider("SegmentWidth", mesh.SegmentWidth, 1, 16, GUILayout.ExpandWidth(true));
+            mesh.SegmentHeight = EditorGUILayout.IntSlider("SegmentHeight", mesh.SegmentHeight, 1, 16, GUILayout.ExpandWidth(true));
+
+            EditorGUILayout.EndVertical();
+
             if (GUILayout.Button("Restore defaults", GUILayout.ExpandWidth(false)))
             {
-                hmd.DistortionK1 = 0.51f;
-                hmd.DistortionK2 = 0.16f;
-                hmd.InterlensDistance = 0.065f;
-                hmd.ScreenToLensDist = 0.045f;
-                hmd.EyeOffsetY = 0.035f;
-                hmd.MaxFovAngles = new Fov { Left = 50, Right = 50, Top = 50, Bottom = 50 };
+                hmd.LoadDefaults();
+                mesh.LoadDefaults();
             }
         }
     }
