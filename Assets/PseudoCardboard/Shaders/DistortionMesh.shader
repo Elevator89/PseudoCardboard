@@ -1,7 +1,4 @@
-﻿// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
-// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
-
-Shader "Unlit/DistortionMesh"
+﻿Shader "Unlit/DistortionMesh"
 {
 	Properties
 	{
@@ -45,7 +42,6 @@ Shader "Unlit/DistortionMesh"
 
 			float Undistort(float r);
 			float2 Undistort(float2 v);
-			float4 Undistort4(float2 v);
 			float Distort(float r);
 			float2 Distort(float2 v);
 			float GetDistortionFactor(float r2);
@@ -78,15 +74,6 @@ Shader "Unlit/DistortionMesh"
 				return v * (ru / r);
 			}
 
-			float4 Undistort4(float2 v)
-			{
-				float r = length(v);
-				float ru = Undistort(r);
-				float2 result = v * (ru / r);
-
-				return float4(result.x, result.y, r, ru);
-			}
-
 			float Distort(float r)
 			{
 				return r * GetDistortionFactor(r*r);
@@ -102,21 +89,24 @@ Shader "Unlit/DistortionMesh"
 				return 1.0 + (_DistortionK1 + _DistortionK2 * r2) * r2;
 			}
 
-			float2 barrel(float2 v, float4 projectionWorld, float4 projectionEye) {
-				float2 w = (v + projectionWorld.zw) / projectionWorld.xy;
-				return projectionEye.xy * Undistort(w) - projectionEye.zw;
+			float2 Barrel(float2 clip, float4 projectionWorld, float4 projectionEye) {
+				float2 viewPos = (clip + projectionWorld.zw) / projectionWorld.xy;
+				return projectionEye.xy * Undistort(viewPos) - projectionEye.zw;
 			}
 
-			float4 barrel4(float2 v, float4 projectionWorld, float4 projectionEye) {
-				float2 w = (v + projectionWorld.zw) / projectionWorld.xy;
-				float4 undistData = Undistort4(w);
-				float2 unbarraled = projectionEye.xy * undistData.xy - projectionEye.zw;
-				return float4(unbarraled.x, unbarraled.y, undistData.z, undistData.w);
-			}
-
-			float2 direct(float2 v, float4 projectionWorld, float4 projectionEye) {
+			float2 Direct(float2 v, float4 projectionWorld, float4 projectionEye) {
 				float2 w = (v + projectionWorld.zw) / projectionWorld.xy;
 				return projectionEye.xy * w - projectionEye.zw;
+			}
+
+			float2 SplitClip(float2 clip) {
+				return (clip.x < 0) ?
+					float2(clip.x + 1, 0.5f * (1 - clip.y)) :
+					float2(clip.x, 0.5f * (1 - clip.y));
+			}
+
+			float2 MergeClip(float2 splitted, bool left) {
+				return float2(left ? splitted.x - 1 : splitted.x, 1 - 2 * splitted.y);
 			}
 
 			// vertex shader
@@ -127,20 +117,22 @@ Shader "Unlit/DistortionMesh"
 
 				// clipPos : -1..+1
 				float4 clipPos = UnityObjectToClipPos(v.vertex);
+				
+				float2 splittedClipPos = SplitClip(clipPos.xy);
 
-				float2 a = (clipPos.x < 0) ?
-					barrel(float2(clipPos.x + 1, 0.5f * (1- clipPos.y)), _ProjectionWorldLeft, _ProjectionEyeLeft) :
-					barrel(float2(clipPos.x, 0.5f * (1 - clipPos.y)), projectionWorldRight, projectionEyeRight);
+				bool left = clipPos.x < 0;
 
-				//float2 a = (clipPos.x < 0) ?
-				//	float2(clipPos.x + 1, 0.5f * (1- clipPos.y)) :
-				//	float2(clipPos.x, 0.5f * (1 - clipPos.y));
+				float2 barrelledClipPos = left ?
+					Barrel(splittedClipPos, _ProjectionWorldLeft, _ProjectionEyeLeft) :
+					Barrel(splittedClipPos, projectionWorldRight, projectionEyeRight);
+
+				float2 mergedClipPos = MergeClip(barrelledClipPos, left);
 
 				v2f o;
-				o.vertex = float4((clipPos.x < 0) ? a.x - 1 : a.x, 1 - 2 * a.y, clipPos.z, clipPos.w);
+				o.vertex = float4(mergedClipPos, clipPos.z, clipPos.w);
 				o.uv = v.uv;
 
-				return o; 
+				return o;
 			}
 
 			sampler2D _MainTex;
