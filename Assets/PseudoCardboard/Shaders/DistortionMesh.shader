@@ -38,6 +38,7 @@
 			{
 				float4 vertex : SV_POSITION; // clip space position
 				float2 uv : TEXCOORD0; // texture coordinate
+				float2 rru : TEXCOORD1; // clip space position
 			};
 
 			float Undistort(float r);
@@ -122,15 +123,20 @@
 
 				bool left = clipPos.x < 0;
 
-				float2 barrelledClipPos = left ?
-					Barrel(splittedClipPos, _ProjectionWorldLeft, _ProjectionEyeLeft) :
-					Barrel(splittedClipPos, projectionWorldRight, projectionEyeRight);
+				float4 projectionWorld = left ? _ProjectionWorldLeft : projectionWorldRight;
+				float4 projectionEye = left ? _ProjectionEyeLeft : projectionEyeRight;
 
-				float2 mergedClipPos = MergeClip(barrelledClipPos, left);
+				float2 viewPos = (splittedClipPos + projectionWorld.zw) / projectionWorld.xy;
+				float radius = length(viewPos);
+				float radiusUndistorted = Undistort(radius);
+				float2 eyeClipPos = projectionEye.xy * viewPos * radiusUndistorted / radius - projectionEye.zw;
+
+				float2 mergedClipPos = MergeClip(eyeClipPos, left);
 
 				v2f o;
 				o.vertex = float4(mergedClipPos, clipPos.z, clipPos.w);
-				o.uv = v.uv;
+				o.rru = float2(radius, radiusUndistorted);
+				o.uv = v.uv * (clipPos.z / o.rru.x * o.rru.y);
 
 				return o;
 			}
@@ -139,7 +145,8 @@
 
 			fixed4 frag(v2f i) : SV_Target
 			{
-				return tex2D(_MainTex, i.uv);
+				return tex2D(_MainTex, i.uv / (i.vertex.z / i.rru.x * i.rru.y));
+				//return tex2D(_MainTex, i.uv);
 			}
 			ENDCG
 		}
