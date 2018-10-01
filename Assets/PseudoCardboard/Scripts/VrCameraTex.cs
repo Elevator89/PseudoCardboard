@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace Assets.PseudoCardboard
 {
+    /// Для VR-представления применяется фрагментный шейдер. Так работает генератора профиля Google Cardboard. Наиболее точная и медленная реализация
     [ExecuteInEditMode]
     public class VrCameraTex : MonoBehaviour
     {
@@ -52,10 +53,6 @@ namespace Assets.PseudoCardboard
             Matrix4x4 projEyeRight;
             Fov fovEyeLeft = Calculator.GetEyeFovAndViewportLeft(Display, Hmd, out viewportEyeLeft);
 
-            Debug.LogFormat("Viewport: x={0:0.00}; y={1:0.00}; w={2:0.00}; h={3:0.00}", viewportEyeLeft.x, viewportEyeLeft.y, viewportEyeLeft.width, viewportEyeLeft.height);
-            Debug.LogFormat("FovWorld: l={0:0.00}; r={1:0.00}; t={2:0.00}; b={3:0.00}", fovWorldLeft.Left, fovWorldLeft.Right, fovWorldLeft.Top, fovWorldLeft.Bottom);
-            Debug.LogFormat("FovEye: l={0:0.00}; r={1:0.00}; t={2:0.00}; b={3:0.00}", fovEyeLeft.Left, fovEyeLeft.Right, fovEyeLeft.Top, fovEyeLeft.Bottom);
-
             Calculator.ComposeProjectionMatricesFromFovAngles(fovEyeLeft, zNear, zFar, out projEyeLeft, out projEyeRight);
 
             _leftWorldCam.transform.localPosition = 0.5f * Vector3.left * Hmd.InterlensDistance;
@@ -71,15 +68,21 @@ namespace Assets.PseudoCardboard
             Graphics.Blit(RenderTexture, destination, EyeMaterial);
         }
 
-        // Set barrel_distortion parameters given CardboardView.
         private void UpdateBarrelDistortion(Material distortionShader, Rect viewportEyeLeft, Matrix4x4 projWorldLeft, Matrix4x4 projEyeLeft)
         {
+            // Код заимствует некоторые детали реализации генератора профиля Google Cardboard https://vr.google.com/intl/ru_ru/cardboard/viewerprofilegenerator/
+            // Оригинальный комментарий:
             // Shader params include parts of the projection matrices needed to
             // convert texture coordinates between distorted and undistorted
             // frustums.  The projections are adjusted to include transform between
             // texture space [0..1] and NDC [-1..1] as well as accounting for the
             // viewport on the screen.
-            // TODO: have explicit viewport transform in shader for simplicity
+
+            // Даны две проекционные матрицы, соответствующие полю зрения левого глаза в виртуальном (то что в игровой сцене) и реальном (внутри HMD, как если бы не было линз) мирах
+            // Из компонент масштаба и переноса этих матриц составляются векторы, 
+            // при этом в них вносятся поправки на пересчёт координат между диапазонами [0..1] и [-1..1], с учётом разбиения экрана.
+            // Эти "матрицы" упрощённого вида позволяют производить преобразования в обе стороны.
+            // Их использование в шейдере даёт возможность получать нужные "видовые" координаты без использования дополнительных камер и вызовов отрисовки
 
             distortionShader.SetFloat("_DistortionK1", Hmd.DistortionK1);
             distortionShader.SetFloat("_DistortionK2", Hmd.DistortionK2);

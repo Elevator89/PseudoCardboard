@@ -2,6 +2,13 @@
 
 namespace Assets.PseudoCardboard.Scripts
 {
+    /// Для VR-представления применяется вершинные шейдеры с заданными процедурными мешами. 
+    /// Меши представляют собой равномерные полигональные сетки и располагаются на сцене, частично перекрывая друг друга.
+    /// Изображения с камер сохраняются в текстуры, которых натягиваются на меши.
+    /// Если пользователь без линз посмотрит левым глазом на левый меш, а правым на правый, то получится в точности та картинка, которую пользователь должен увидеть в шлеме с линзами (после всех коррекций)
+    /// Меш обрабатывается вершинным шейдером, который производит коррекцию дисторсии, меняя координату z у вершин мешей, меш становится объёмным
+    /// На обработанные меши "смотрит" другая пара камер, поле зрения которых соответсвует параметрам глаз пользоватля в HMD
+    /// Метод использует пять камеры и две поверхности, но даёт максимально наглядную иллюстрацию работающего принципа
     [ExecuteInEditMode]
     public class VrCameraBiMesh : MonoBehaviour
     {
@@ -64,9 +71,6 @@ namespace Assets.PseudoCardboard.Scripts
             Matrix4x4 projEyeLeft;
             Matrix4x4 projEyeRight;
             Fov fovEyeTanAnglesLeft = Calculator.GetEyeFovTanAnglesAndViewportLeft(Display, Hmd, out viewportEyeLeft);
-
-            //Debug.LogFormat("Viewport: x={0:0.00}; y={1:0.00}; w={2:0.00}; h={3:0.00}", viewportNoLensLeft.x, viewportNoLensLeft.y, viewportNoLensLeft.width, viewportNoLensLeft.height);
-            //Debug.LogFormat("FOV: l={0:0.00}; r={1:0.00}; t={2:0.00}; b={3:0.00}", projFov.Left, projFov.Right, projFov.Top, projFov.Bottom);
 
             Calculator.ComposeProjectionMatricesFromFovTanAngles(fovEyeTanAnglesLeft, zNear, zFar, out projEyeLeft, out projEyeRight);
 

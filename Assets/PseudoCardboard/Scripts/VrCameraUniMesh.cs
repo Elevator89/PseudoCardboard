@@ -3,6 +3,12 @@ using UnityEngine;
 
 namespace Assets.PseudoCardboard
 {
+    /// Для VR-представления применяется вершинный шейдер с заданным процедурным мешем. 
+    /// Меш представляет собой две равномерных полигональных сетки, раздёлённых минимальным промежутком.
+    /// Изображения с камер сохраняются в текстуру, которая натягивается на этот меш.
+    /// Меш обрабатывается вершинным шейдером, который производит коррекцию дисторсии в одной плоскости
+    /// Фрагментный шейдер производит перспективную коррекцию текстуры в "ручном" режиме.
+    /// Метод использует всего три камеры и одну поверхность, что позволяет экономить на вызовах отрисовки по сравнению с VrCameraBiMesh
     [ExecuteInEditMode]
     [RequireComponent(typeof(Camera))]
     public class VrCameraUniMesh : MonoBehaviour
@@ -38,8 +44,6 @@ namespace Assets.PseudoCardboard
 
         void Update()
         {
-            //Debug.LogFormat("{0}x{1}", screenWidthMeters, screenHeightMeters);
-
             float ratio = _centralCam.pixelRect.width / (float)_centralCam.pixelRect.height;
             float verticalTanAngle = Mathf.Tan(0.5f * _centralCam.fieldOfView * Mathf.Deg2Rad);
             float horiaontalTanAngle = verticalTanAngle * ratio;
@@ -65,9 +69,6 @@ namespace Assets.PseudoCardboard
             Matrix4x4 projEyeRight;
             Fov fovEyeLeft = Calculator.GetEyeFovAndViewportLeft(Display, Hmd, out viewportEyeLeft);
 
-            //Debug.LogFormat("Viewport: x={0:0.00}; y={1:0.00}; w={2:0.00}; h={3:0.00}", viewportNoLensLeft.x, viewportNoLensLeft.y, viewportNoLensLeft.width, viewportNoLensLeft.height);
-            //Debug.LogFormat("FOV: l={0:0.00}; r={1:0.00}; t={2:0.00}; b={3:0.00}", projFov.Left, projFov.Right, projFov.Top, projFov.Bottom);
-
             Calculator.ComposeProjectionMatricesFromFovAngles(fovEyeLeft, zNear, zFar, out projEyeLeft, out projEyeRight);
 
             _camWorldLeft.transform.localPosition = 0.5f * Vector3.left * Hmd.InterlensDistance;
@@ -82,12 +83,19 @@ namespace Assets.PseudoCardboard
         // Set barrel_distortion parameters given CardboardView.
         private void UpdateBarrelDistortion(Material distortionShader, Rect viewportEyeLeft, Matrix4x4 projWorldLeft, Matrix4x4 projEyeLeft)
         {
+            // Код заимствует некоторые детали реализации генератора профилея Google Cardboard https://vr.google.com/intl/ru_ru/cardboard/viewerprofilegenerator/
+            // Оригинальный комментарий:
             // Shader params include parts of the projection matrices needed to
             // convert texture coordinates between distorted and undistorted
             // frustums.  The projections are adjusted to include transform between
             // texture space [0..1] and NDC [-1..1] as well as accounting for the
             // viewport on the screen.
-            // TODO: have explicit viewport transform in shader for simplicity
+
+            // Даны две проекционные матрицы, соответствующие полю зрения левого глаза в виртуальном (то что в игровой сцене) и реальном (внутри HMD, как если бы не было линз) мирах
+            // Из компонент масштаба и переноса этих матриц составляются векторы, 
+            // при этом в них вносятся поправки на пересчёт координат между диапазонами [0..1] и [-1..1], с учётом разбиения экрана.
+            // Эти "матрицы" упрощённого вида позволяют производить преобразования в обе стороны.
+            // Их использование в шейдере даёт возможность получать нужные "видовые" координаты без использования дополнительных камер и вызовов отрисовки
 
             distortionShader.SetFloat("_DistortionK1", Hmd.DistortionK1);
             distortionShader.SetFloat("_DistortionK2", Hmd.DistortionK2);
