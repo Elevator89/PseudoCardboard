@@ -38,13 +38,11 @@
 			{
 				float4 vertex : SV_POSITION; // clip space position
 				float2 uv : TEXCOORD0; // texture coordinate
-				float2 rru : TEXCOORD1; // clip space position
+				float z : TEXCOORD1; // texture coordinate
 			};
 
 			float Undistort(float r);
-			float2 Undistort(float2 v);
 			float Distort(float r);
-			float2 Distort(float2 v);
 			float GetDistortionFactor(float r2);
 
 			float Undistort(float r)
@@ -68,21 +66,9 @@
 				return r0;
 			}
 
-			float2 Undistort(float2 v)
-			{
-				float r = length(v);
-				float ru = Undistort(r);
-				return v * (ru / r);
-			}
-
 			float Distort(float r)
 			{
 				return r * GetDistortionFactor(r*r);
-			}
-
-			float2 Distort(float2 v)
-			{
-				return GetDistortionFactor(dot(v,v)) * v;
 			}
 
 			float GetDistortionFactor(float r2)
@@ -90,20 +76,18 @@
 				return 1.0 + (_DistortionK1 + _DistortionK2 * r2) * r2;
 			}
 
-			float2 Barrel(float2 clip, float4 projectionWorld, float4 projectionEye) {
-				float2 viewPos = (clip + projectionWorld.zw) / projectionWorld.xy;
-				return projectionEye.xy * Undistort(viewPos) - projectionEye.zw;
-			}
-
-			float2 Direct(float2 v, float4 projectionWorld, float4 projectionEye) {
-				float2 w = (v + projectionWorld.zw) / projectionWorld.xy;
-				return projectionEye.xy * w - projectionEye.zw;
-			}
-
-			float2 SplitClip(float2 clip) {
+			float3 SplitClip(float3 clip) {
 				return (clip.x < 0) ?
-					float2(clip.x + 1, 0.5f * (1 - clip.y)) :
-					float2(clip.x, 0.5f * (1 - clip.y));
+					float3(clip.x + 1, 0.5f * (1 - clip.y), clip.z) :
+					float3(clip.x, 0.5f * (1 - clip.y), clip.z);
+			}
+
+			float2 ClipToView(float2 clipPos, float4 projectionLine) {
+				return (clipPos + projectionLine.zw) / projectionLine.xy;
+			}
+
+			float2 ViewToClip(float2 viewPos, float4 projectionLine) {
+				return projectionLine.xy * viewPos - projectionLine.zw;
 			}
 
 			float2 MergeClip(float2 splitted, bool left) {
@@ -119,24 +103,28 @@
 				// clipPos : -1..+1
 				float4 clipPos = UnityObjectToClipPos(v.vertex);
 				
-				float2 splittedClipPos = SplitClip(clipPos.xy);
+				float3 splittedClipPos = SplitClip(clipPos.xyz);
 
 				bool left = clipPos.x < 0;
 
 				float4 projectionWorld = left ? _ProjectionWorldLeft : projectionWorldRight;
 				float4 projectionEye = left ? _ProjectionEyeLeft : projectionEyeRight;
 
-				float2 viewPos = (splittedClipPos + projectionWorld.zw) / projectionWorld.xy;
+				float2 viewPos = ClipToView(splittedClipPos, projectionWorld);
 				float radius = length(viewPos);
 				float radiusUndistorted = Undistort(radius);
-				float2 eyeClipPos = projectionEye.xy * viewPos * radiusUndistorted / radius - projectionEye.zw;
+				float undistortionZFactor = radius / radiusUndistorted;
+				float2 eyeClipPos = ViewToClip(viewPos / undistortionZFactor, projectionEye);
 
 				float2 mergedClipPos = MergeClip(eyeClipPos, left);
 
+				float z = clipPos.z * undistortionZFactor;
+
 				v2f o;
 				o.vertex = float4(mergedClipPos, clipPos.z, clipPos.w);
-				o.rru = float2(radius, radiusUndistorted);
-				o.uv = v.uv * (clipPos.z / o.rru.x * o.rru.y);
+
+				o.uv = v.uv / z;
+				o.z = 1/z;
 
 				return o;
 			}
@@ -145,8 +133,7 @@
 
 			fixed4 frag(v2f i) : SV_Target
 			{
-				return tex2D(_MainTex, i.uv / (i.vertex.z / i.rru.x * i.rru.y));
-				//return tex2D(_MainTex, i.uv);
+				return tex2D(_MainTex, i.uv / i.z);
 			}
 			ENDCG
 		}
