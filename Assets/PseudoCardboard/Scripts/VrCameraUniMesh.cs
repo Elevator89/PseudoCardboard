@@ -16,7 +16,6 @@ namespace Assets.PseudoCardboard
         public Material EyeMaterial;
 
         private Camera _centralCam;
-        private FovScaler _camWorldLeftScaler;
 
         private Camera _camWorldLeft;
         private Camera _camWorldRight;
@@ -31,7 +30,6 @@ namespace Assets.PseudoCardboard
             Display = new DisplayParameters();
 
             _centralCam = GetComponent<Camera>();
-            _camWorldLeftScaler = GetComponentInChildren<FovScaler>();
 
             _camWorldLeft = GetComponentsInChildren<Camera>().First(cam => cam.stereoTargetEye == StereoTargetEyeMask.Left);
             _camWorldRight = GetComponentsInChildren<Camera>().First(cam => cam.stereoTargetEye == StereoTargetEyeMask.Right);
@@ -44,11 +42,6 @@ namespace Assets.PseudoCardboard
 
         void Update()
         {
-            float ratio = _centralCam.pixelRect.width / (float)_centralCam.pixelRect.height;
-            float verticalTanAngle = Mathf.Tan(0.5f * _centralCam.fieldOfView * Mathf.Deg2Rad);
-            float horiaontalTanAngle = verticalTanAngle * ratio;
-            _camWorldLeftScaler.SetFov(new Fov(horiaontalTanAngle, horiaontalTanAngle, verticalTanAngle, verticalTanAngle));
-
             _distortion.DistortionK1 = Hmd.DistortionK1;
             _distortion.DistortionK2 = Hmd.DistortionK2;
 

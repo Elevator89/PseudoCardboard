@@ -94,6 +94,7 @@ namespace Assets.PseudoCardboard.Scripts
                 }
             }
             mesh.triangles = triangles;
+            mesh.RecalculateNormals();
         }
     }
 }

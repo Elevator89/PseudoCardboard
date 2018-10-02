@@ -43,6 +43,8 @@ Shader "Unlit/DistortionBiMesh"
 			float Distort(float r);
 			float GetDistortionFactor(float r2);
 
+			// Нужно найти корни многочлена 5-й степени. Сам многочлен описан в методе Distort
+			// Решение находится численным методом.
 			float Undistort(float r)
 			{
 				float r0 = r * 0.9f;

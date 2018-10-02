@@ -18,13 +18,10 @@ namespace Assets.PseudoCardboard
 			float r0 = tanAngle * 0.9f;
 			float r1 = tanAngle / 0.9f;
 			float r2;
-			float _dr1 = DistortTanAngle(r1);
 			float dr1 = tanAngle - DistortTanAngle(r1);
-			float _dr0;
 			float dr0;
 			while (Mathf.Abs(r0 - r1) > 0.0001f)
 			{
-				_dr0 = DistortTanAngle(r0);
 				dr0 = tanAngle - DistortTanAngle(r0);
 				r2 = r0 - dr0 * ((r0 - r1) / (dr0 - dr1));
 				r1 = r0;

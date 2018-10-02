@@ -45,18 +45,17 @@
 			float Distort(float r);
 			float GetDistortionFactor(float r2);
 
+			// Нужно найти корни многочлена 5-й степени. Сам многочлен описан в методе Distort
+			// Решение находится численным методом.
 			float Undistort(float r)
 			{
 				float r0 = r * 0.9f;
 				float r1 = r / 0.9f;
 				float r2;
-				float _dr1 = Distort(r1);
 				float dr1 = r - Distort(r1);
-				float _dr0;
 				float dr0;
 				while (abs(r0 - r1) > 0.0001f)
 				{
-					_dr0 = Distort(r0);
 					dr0 = r - Distort(r0);
 					r2 = r0 - dr0 * ((r0 - r1) / (dr0 - dr1));
 					r1 = r0;
@@ -76,10 +75,10 @@
 				return 1.0 + (_DistortionK1 + _DistortionK2 * r2) * r2;
 			}
 
-			float3 SplitClip(float3 clip) {
+			float2 SplitClip(float2 clip) {
 				return (clip.x < 0) ?
-					float3(clip.x + 1, 0.5f * (1 - clip.y), clip.z) :
-					float3(clip.x, 0.5f * (1 - clip.y), clip.z);
+					float2(clip.x + 1, 0.5f * (1 - clip.y)) :
+					float2(clip.x, 0.5f * (1 - clip.y));
 			}
 
 			float2 ClipToView(float2 clipPos, float4 projectionLine) {
@@ -100,10 +99,10 @@
 				float4 projectionWorldRight = (_ProjectionWorldLeft + float4(0.0, 0.0, 1.0, 0.0)) * float4(1.0, 1.0, -1.0, 1.0);
 				float4 projectionEyeRight = (_ProjectionEyeLeft + float4(0.0, 0.0, 1.0, 0.0)) * float4(1.0, 1.0, -1.0, 1.0);
 
-				// clipPos : -1..+1
-				float4 clipPos = UnityObjectToClipPos(v.vertex);
+				// сюда передаются координаты вершин особого меша, который сгенерён сразу в clip-координатах [-1..+1], чтобы занимать весь экран без ручного скейлинга
+				float2 clipPos = float2(v.vertex.x, -v.vertex.y);
 				
-				float3 splittedClipPos = SplitClip(clipPos.xyz);
+				float2 splittedClipPos = SplitClip(clipPos.xy);
 
 				bool left = clipPos.x < 0;
 
@@ -118,13 +117,14 @@
 
 				float2 mergedClipPos = MergeClip(eyeClipPos, left);
 
-				float z = clipPos.z * undistortionZFactor;
+				float z = 0.5;
+				float zUndistorted = z * undistortionZFactor;
 
 				v2f o;
-				o.vertex = float4(mergedClipPos, clipPos.z, clipPos.w);
+				o.vertex = float4(mergedClipPos, z, 1);
 
-				o.uv = v.uv / z;
-				o.z = 1/z;
+				o.uv = v.uv / zUndistorted;
+				o.z = 1 / zUndistorted;
 
 				return o;
 			}

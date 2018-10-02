@@ -22,7 +22,6 @@ GameObject:
   - component: {fileID: 33220104440645254}
   - component: {fileID: 23655871708114050}
   - component: {fileID: 114233626012821314}
-  - component: {fileID: 114346309184418270}
   m_Layer: 8
   m_Name: SplittedPlane
   m_TagString: Untagged
@@ -96,7 +95,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!1 &1433579480040324
 GameObject:
   m_ObjectHideFlags: 1
@@ -240,7 +239,7 @@ Transform:
   m_GameObject: {fileID: 1086263537122608}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 1}
-  m_LocalScale: {x: 3.782823, y: 2.1711779, z: 1}
+  m_LocalScale: {x: 1, y: 1, z: 0}
   m_Children: []
   m_Father: {fileID: 4788176211776134}
   m_RootOrder: 0
@@ -490,21 +489,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4965fc58267176c48876f43bea97bb3b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SegmentWidth: 8
-  SegmentHeight: 8
-  Width: 1
-  Height: 1
---- !u!114 &114346309184418270
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1086263537122608}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8c8967f4461cf90408f1501998d2af08, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  Width: 2
+  Height: 2
 --- !u!114 &114371955618502056
 MonoBehaviour:
   m_ObjectHideFlags: 1
