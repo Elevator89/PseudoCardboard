@@ -80,10 +80,10 @@ namespace Assets.PseudoCardboard
         {
             return new Fov
             (
-                distortion.DistortTanAngle(tanAngles.Left),
-                distortion.DistortTanAngle(tanAngles.Right),
-                distortion.DistortTanAngle(tanAngles.Bottom),
-                distortion.DistortTanAngle(tanAngles.Top)
+                distortion.Distort(tanAngles.Left),
+                distortion.Distort(tanAngles.Right),
+                distortion.Distort(tanAngles.Bottom),
+                distortion.Distort(tanAngles.Top)
             );
         }
 
