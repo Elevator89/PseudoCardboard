@@ -55,7 +55,7 @@ namespace Assets.PseudoCardboard
 			return DistortionK2 * r5 + DistortionK1 * r3 + r;
 		}
 
-		private float DistortDerivative(float r)
+		public float DistortDerivative(float r)
 		{
 			float r2 = r * r;
 			float r4 = r2 * r2;
