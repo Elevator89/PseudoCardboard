@@ -101,9 +101,8 @@ namespace Assets.PseudoCardboard
 			distortionShader.SetFloat("_DistortionK1", Hmd.DistortionK1);
 			distortionShader.SetFloat("_DistortionK2", Hmd.DistortionK2);
 
-			distortionShader.SetFloat("_MaxWorldFovTanAngle", maxWorldFovTanAngle);
 
-			UpdateUndistortionTex(maxEyeFovTanAngle);
+			UpdateUndistortionTex(distortionShader, maxEyeFovTanAngle);
 
 			distortionShader.SetTexture("_UndistortionTex", _undistortionTex);
 
@@ -130,7 +129,7 @@ namespace Assets.PseudoCardboard
 			distortionShader.SetVector("_ProjectionEyeLeft", projEyeLine);
 		}
 
-		private void UpdateUndistortionTex(float maxEyeFovTanAngle)
+		private void UpdateUndistortionTex(Material distortionShader, float maxEyeFovTanAngle)
 		{
 			const int n = 16;
 			float[] worldTanAngles = new float[n];
@@ -163,6 +162,8 @@ namespace Assets.PseudoCardboard
 			}
 
 			_undistortionTex.Apply();
+
+			distortionShader.SetFloat("_MaxWorldFovTanAngle", maxWorldFovTanAngle);
 		}
 
 		private float GetMaxValue(Fov fov)

@@ -128,7 +128,7 @@
 
 				float2 viewPos = ClipToView(splittedClipPos, projectionWorld);
 				float radius = length(viewPos);
-				float radiusUndistorted = Undistort(radius);
+				float radiusUndistorted = UndistortWithTex(radius);
 				//float radiusUndistorted = radius;
 
 				float undistortionZFactor = radius / radiusUndistorted;
