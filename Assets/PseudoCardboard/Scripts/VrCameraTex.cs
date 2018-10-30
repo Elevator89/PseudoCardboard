@@ -39,23 +39,30 @@ namespace Assets.PseudoCardboard
             float zNear = _leftWorldCam.nearClipPlane;
             float zFar = _leftWorldCam.farClipPlane;
 
-            Matrix4x4 projWorldLeft;
-            Matrix4x4 projWorldRight;
+			Fov displayDistancesLeft = Calculator.GetFovDistancesLeft(Display, Hmd);
+			Rect displayViewportLeft = Calculator.GetViewportLeft(displayDistancesLeft, Display.Dpm);
 
-            // То, как должен видеть левый глаз. Мнимое изображение (после преломления идеальной линзой без искажений). С широким углом. Именно так надо снять сцену
-            Fov fovWorldLeft = Calculator.GetWorldFovLeft(_distortion, Display, Hmd);
-            Calculator.ComposeProjectionMatricesFromFovAngles(fovWorldLeft, zNear, zFar, out projWorldLeft, out projWorldRight);
+			// То, как должен видеть левый глаз свой кусок экрана. Без линзы. C учётом только размеров дисплея
+			Fov fovDisplayTanAngles = displayDistancesLeft / Hmd.ScreenToLensDist;
 
+			// FoV шлема
+			Fov hmdMaxFovTanAngles = Fov.AnglesToTanAngles(Hmd.MaxFovAngles);
 
-            // То, как левый глаз видит свою половину экрана телефона без линз.
-            Rect viewportEyeLeft;
-            Matrix4x4 projEyeLeft;
-            Matrix4x4 projEyeRight;
-            Fov fovEyeLeft = Calculator.GetEyeFovAndViewportLeft(Display, Hmd, out viewportEyeLeft);
+			// То, как должен видеть левый глаз свой кусок экрана. Без линзы. C учётом размеров дисплея и FoV шлема
+			Fov fovEyeTanAglesLeft = Fov.Min(fovDisplayTanAngles, hmdMaxFovTanAngles);
 
-            Calculator.ComposeProjectionMatricesFromFovAngles(fovEyeLeft, zNear, zFar, out projEyeLeft, out projEyeRight);
+			// То, как должен видеть левый глаз. Мнимое изображение (после увеличения идеальной линзой без искажений). С широким углом. Именно так надо снять сцену
+			Fov fovWorldTanAnglesLeft = Calculator.DistortTanAngles(fovEyeTanAglesLeft, _distortion);
 
-            _leftWorldCam.transform.localPosition = 0.5f * Vector3.left * Hmd.InterlensDistance;
+			Matrix4x4 projWorldLeft;
+			Matrix4x4 projWorldRight;
+			Calculator.ComposeProjectionMatricesFromFovTanAngles(fovWorldTanAnglesLeft, zNear, zFar, out projWorldLeft, out projWorldRight);
+
+			Matrix4x4 projEyeLeft;
+			Matrix4x4 projEyeRight;
+			Calculator.ComposeProjectionMatricesFromFovTanAngles(fovDisplayTanAngles, zNear, zFar, out projEyeLeft, out projEyeRight);
+
+			_leftWorldCam.transform.localPosition = 0.5f * Vector3.left * Hmd.InterlensDistance;
             _leftWorldCam.transform.localPosition = 0.5f * Vector3.left * Hmd.InterlensDistance;
 
             _rightWorldCam.transform.localPosition = 0.5f * Vector3.right * Hmd.InterlensDistance;
@@ -64,7 +71,7 @@ namespace Assets.PseudoCardboard
             _leftWorldCam.projectionMatrix = projWorldLeft;
             _rightWorldCam.projectionMatrix = projWorldRight;
 
-            UpdateBarrelDistortion(EyeMaterial, viewportEyeLeft, projWorldLeft, projEyeLeft);
+            UpdateBarrelDistortion(EyeMaterial, displayViewportLeft, projWorldLeft, projEyeLeft);
             Graphics.Blit(RenderTexture, destination, EyeMaterial);
         }
 

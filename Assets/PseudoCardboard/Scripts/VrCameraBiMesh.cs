@@ -58,23 +58,30 @@ namespace Assets.PseudoCardboard.Scripts
             float zNear = _camWorldLeft.nearClipPlane;
             float zFar = _camWorldLeft.farClipPlane;
 
-            Matrix4x4 projWorldLeft;
-            Matrix4x4 projWorldRight;
+			Fov displayDistancesLeft = Calculator.GetFovDistancesLeft(Display, Hmd);
+			Rect displayViewportLeft = Calculator.GetViewportLeft(displayDistancesLeft, Display.Dpm);
 
-            // То, как должен видеть левый глаз. Мнимое изображение (после увеличения идеальной линзой без искажений). С широким углом. Именно так надо снять сцену
-            Fov fovWorldTanAnglesLeft = Calculator.GetWorldFovTanAnglesLeft(_distortion, Display, Hmd);
-            Calculator.ComposeProjectionMatricesFromFovTanAngles(fovWorldTanAnglesLeft, zNear, zFar, out projWorldLeft, out projWorldRight);
+			// То, как должен видеть левый глаз свой кусок экрана. Без линзы. C учётом только размеров дисплея
+			Fov fovDisplayTanAngles = displayDistancesLeft / Hmd.ScreenToLensDist;
 
+			// FoV шлема
+			Fov hmdMaxFovTanAngles = Fov.AnglesToTanAngles(Hmd.MaxFovAngles);
 
-            // То, как левый глаз видит свою половину экрана телефона без линз.
-            Rect viewportEyeLeft;
-            Matrix4x4 projEyeLeft;
-            Matrix4x4 projEyeRight;
-            Fov fovEyeTanAnglesLeft = Calculator.GetEyeFovTanAnglesAndViewportLeft(Display, Hmd, out viewportEyeLeft);
+			// То, как должен видеть левый глаз свой кусок экрана. Без линзы. C учётом размеров дисплея и FoV шлема
+			Fov fovEyeTanAglesLeft = Fov.Min(fovDisplayTanAngles, hmdMaxFovTanAngles);
 
-            Calculator.ComposeProjectionMatricesFromFovTanAngles(fovEyeTanAnglesLeft, zNear, zFar, out projEyeLeft, out projEyeRight);
+			// То, как должен видеть левый глаз. Мнимое изображение (после увеличения идеальной линзой без искажений). С широким углом. Именно так надо снять сцену
+			Fov fovWorldTanAnglesLeft = Calculator.DistortTanAngles(fovEyeTanAglesLeft, _distortion);
 
-            _camWorldLeft.transform.localPosition = 0.5f * Vector3.left * Hmd.InterlensDistance;
+			Matrix4x4 projWorldLeft;
+			Matrix4x4 projWorldRight;
+			Calculator.ComposeProjectionMatricesFromFovTanAngles(fovWorldTanAnglesLeft, zNear, zFar, out projWorldLeft, out projWorldRight);
+
+			Matrix4x4 projEyeLeft;
+			Matrix4x4 projEyeRight;
+			Calculator.ComposeProjectionMatricesFromFovTanAngles(fovDisplayTanAngles, zNear, zFar, out projEyeLeft, out projEyeRight);
+
+			_camWorldLeft.transform.localPosition = 0.5f * Vector3.left * Hmd.InterlensDistance;
             _camWorldRight.transform.localPosition = 0.5f * Vector3.right * Hmd.InterlensDistance;
 
             _camEyeLeft.transform.localPosition = 0.5f * Vector3.left * Hmd.InterlensDistance;

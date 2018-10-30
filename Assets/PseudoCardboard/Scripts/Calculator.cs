@@ -4,59 +4,6 @@ namespace Assets.PseudoCardboard
 {
     public static class Calculator
     {
-        /// То, как должен видеть левый глаз. Мнимое изображение (после преломления идеальной линзой без искажений). С широким углом
-        public static Fov GetWorldFovLeft(Distortion distortion, DisplayParameters display, HmdParameters hmd)
-        {
-            return Fov.TanAnglesToAngles(GetWorldFovTanAnglesLeft(distortion, display, hmd));
-        }
-
-        public static Fov GetWorldFovTanAnglesLeft(Distortion distortion, DisplayParameters display, HmdParameters hmd)
-        {
-            return DistortTanAngles(GetEyeFovTanAnglesLeft(display, hmd), distortion);
-        }
-
-        public static Fov GetEyeFovAndViewportLeft(DisplayParameters display, HmdParameters hmd, out Rect leftViewport)
-        {
-            // The screen-to-lens distance can be used as a rough approximation
-            // of the virtual-eye-to-screen distance.
-            float eyeToScreenDist = hmd.ScreenToLensDist;
-
-            Fov fovDistances = GetFovDistancesLeft(display, hmd);
-            leftViewport = GetViewportLeft(fovDistances, display.Dpm);
-
-            return Fov.TanAnglesToAngles(fovDistances / eyeToScreenDist);
-        }
-
-        public static Fov GetEyeFovTanAnglesAndViewportLeft(DisplayParameters display, HmdParameters hmd, out Rect leftViewport)
-        {
-            // The screen-to-lens distance can be used as a rough approximation
-            // of the virtual-eye-to-screen distance.
-            float eyeToScreenDist = hmd.ScreenToLensDist;
-
-            Fov fovDistances = GetFovDistancesLeft(display, hmd);
-            leftViewport = GetViewportLeft(fovDistances, display.Dpm);
-
-            return fovDistances / eyeToScreenDist;
-        }
-
-        /// То, как левый глаз видит свою половину экрана телефона без линз.
-        public static Fov GetEyeFovLeft(DisplayParameters display, HmdParameters hmd)
-        {
-            return Fov.TanAnglesToAngles(GetEyeFovTanAnglesLeft(display, hmd));
-        }
-
-        public static Fov GetEyeFovTanAnglesLeft(DisplayParameters display, HmdParameters hmd)
-        {
-            // The screen-to-lens distance can be used as a rough approximation
-            // of the virtual-eye-to-screen distance.
-            float eyeToScreenDist = hmd.ScreenToLensDist;
-
-            Fov hmdMaxFovTanAngles = Fov.AnglesToTanAngles(hmd.MaxFovAngles);
-            Fov displayFovTanAngles = GetFovDistancesLeft(display, hmd) / eyeToScreenDist;
-
-            return Fov.Min(displayFovTanAngles, hmdMaxFovTanAngles);
-        }
-
         public static Rect GetViewportLeft(Fov fovDistances, Vector2 dpm)
         {
             return new Rect(
@@ -66,7 +13,7 @@ namespace Assets.PseudoCardboard
                 (fovDistances.Bottom + fovDistances.Top) * dpm.y);
         }
 
-        private static Fov GetFovDistancesLeft(DisplayParameters display, HmdParameters hmd)
+        public static Fov GetFovDistancesLeft(DisplayParameters display, HmdParameters hmd)
         {
             float outerDist = 0.5f * (display.Size.x - hmd.InterlensDistance);
             float innerDist = 0.5f * hmd.InterlensDistance;
@@ -76,7 +23,7 @@ namespace Assets.PseudoCardboard
             return new Fov(outerDist, innerDist, bottomDist, topDist);
         }
 
-        private static Fov DistortTanAngles(Fov tanAngles, Distortion distortion)
+        public static Fov DistortTanAngles(Fov tanAngles, Distortion distortion)
         {
             return new Fov
             (

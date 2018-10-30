@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.IO;
+using System.Linq;
 using UnityEngine;
 
 namespace Assets.PseudoCardboard
@@ -24,7 +25,7 @@ namespace Assets.PseudoCardboard
 		private DisplayParameters Display;
 		private HmdParameters Hmd;
 
-		private const int texWidth = 512;
+		private const int texWidth = 2048;
 		private Texture2D _undistortionTex;
 
 		void OnEnable()
@@ -41,7 +42,7 @@ namespace Assets.PseudoCardboard
 			_camWorldRight.transform.localRotation = Quaternion.identity;
 
 			_distortion = new Distortion(Hmd.DistortionK1, Hmd.DistortionK2);
-			_undistortionTex = new Texture2D(texWidth, 1, TextureFormat.RGB24, false, true);
+			_undistortionTex = new Texture2D(texWidth, 1, TextureFormat.RGBAFloat, false, true);
 			_undistortionTex.alphaIsTransparency = false;
 		}
 
@@ -53,21 +54,28 @@ namespace Assets.PseudoCardboard
 			float zNear = _camWorldLeft.nearClipPlane;
 			float zFar = _camWorldLeft.farClipPlane;
 
-			Matrix4x4 projWorldLeft;
-			Matrix4x4 projWorldRight;
+			Fov displayDistancesLeft = Calculator.GetFovDistancesLeft(Display, Hmd);
+			Rect displayViewportLeft = Calculator.GetViewportLeft(displayDistancesLeft, Display.Dpm);
+
+			// То, как должен видеть левый глаз свой кусок экрана. Без линзы. C учётом только размеров дисплея
+			Fov fovDisplayTanAngles = displayDistancesLeft / Hmd.ScreenToLensDist;
+
+			// FoV шлема
+			Fov hmdMaxFovTanAngles = Fov.AnglesToTanAngles(Hmd.MaxFovAngles);
+			
+			// То, как должен видеть левый глаз свой кусок экрана. Без линзы. C учётом размеров дисплея и FoV шлема
+			Fov fovEyeTanAglesLeft = Fov.Min(fovDisplayTanAngles, hmdMaxFovTanAngles);
 
 			// То, как должен видеть левый глаз. Мнимое изображение (после увеличения идеальной линзой без искажений). С широким углом. Именно так надо снять сцену
-			Fov fovWorldLeft = Calculator.GetWorldFovTanAnglesLeft(_distortion, Display, Hmd);
-			Calculator.ComposeProjectionMatricesFromFovTanAngles(fovWorldLeft, zNear, zFar, out projWorldLeft, out projWorldRight);
+			Fov fovWorldTanAnglesLeft = Calculator.DistortTanAngles(fovEyeTanAglesLeft, _distortion);
 
+			Matrix4x4 projWorldLeft;
+			Matrix4x4 projWorldRight;
+			Calculator.ComposeProjectionMatricesFromFovTanAngles(fovWorldTanAnglesLeft, zNear, zFar, out projWorldLeft, out projWorldRight);
 
-			// То, как левый глаз видит свою половину экрана телефона без линз.
-			Rect viewportEyeLeft;
 			Matrix4x4 projEyeLeft;
 			Matrix4x4 projEyeRight;
-			Fov fovEyeLeft = Calculator.GetEyeFovTanAnglesAndViewportLeft(Display, Hmd, out viewportEyeLeft);
-
-			Calculator.ComposeProjectionMatricesFromFovTanAngles(fovEyeLeft, zNear, zFar, out projEyeLeft, out projEyeRight);
+			Calculator.ComposeProjectionMatricesFromFovTanAngles(fovDisplayTanAngles, zNear, zFar, out projEyeLeft, out projEyeRight);
 
 			_camWorldLeft.transform.localPosition = 0.5f * Vector3.left * Hmd.InterlensDistance;
 			_camWorldRight.transform.localPosition = 0.5f * Vector3.right * Hmd.InterlensDistance;
@@ -75,10 +83,10 @@ namespace Assets.PseudoCardboard
 			_camWorldLeft.projectionMatrix = projWorldLeft;
 			_camWorldRight.projectionMatrix = projWorldRight;
 
-			float maxEyeFovTanAngle = GetMaxValue(fovEyeLeft);
-			float maxWorldFovTanAngle = GetMaxValue(fovWorldLeft);
+			float maxEyeFovTanAngle = GetMaxValue(fovEyeTanAglesLeft);
+			float maxWorldFovTanAngle = GetMaxValue(fovWorldTanAnglesLeft);
 
-			UpdateBarrelDistortion(EyeMaterial, maxEyeFovTanAngle, maxWorldFovTanAngle, viewportEyeLeft, projWorldLeft, projEyeLeft);
+			UpdateBarrelDistortion(EyeMaterial, maxEyeFovTanAngle, maxWorldFovTanAngle, displayViewportLeft, projWorldLeft, projEyeLeft);
 		}
 
 		// Set barrel_distortion parameters given CardboardView.
@@ -129,41 +137,44 @@ namespace Assets.PseudoCardboard
 			distortionShader.SetVector("_ProjectionEyeLeft", projEyeLine);
 		}
 
-		private void UpdateUndistortionTex(Material distortionShader, float maxEyeFovTanAngle)
+		private void UpdateUndistortionTex(Material distortionShader, float maxArgument)
 		{
 			const int n = 16;
-			float[] worldTanAngles = new float[n];
-			float stepEye = maxEyeFovTanAngle / (n - 1);
+			float[] distortedValues = new float[n];
+			float stepArg = maxArgument / (n - 1);
 
 			for (int i = 0; i < n; i++)
 			{
-				float eyeTanAngle = i * stepEye;
-				worldTanAngles[i] = _distortion.Distort(eyeTanAngle);
+				float argument = i * stepArg;
+				distortedValues[i] = _distortion.Distort(argument);
 			}
 
-			float maxWorldFovTanAngle = worldTanAngles[n - 1];
+			float maxDistortedValue = distortedValues[n - 1];
 
-			CubicHermiteSpline spline = new CubicHermiteSpline(_distortion, worldTanAngles);
+			CubicHermiteSpline spline = new CubicHermiteSpline(_distortion, distortedValues);
 
-			for (int i = 0; i < texWidth; ++i)
+			for (int i = 0; i < _undistortionTex.width; ++i)
 			{
 				float eyeTanAngleNormalized = 1f;
 
 				if (i > 0)
 				{
-					float worldTanAngle = maxWorldFovTanAngle * (float)i / texWidth;
-					float eyeTanAngle = spline.GetValue(worldTanAngle);
+					float distortedValue = maxDistortedValue * (float)i / texWidth;
+					float undistortedValue = spline.GetValue(distortedValue);
 
-					if (eyeTanAngle < worldTanAngle)
-						eyeTanAngleNormalized = eyeTanAngle / worldTanAngle;
+					if (distortedValue < undistortedValue)
+						eyeTanAngleNormalized = distortedValue / undistortedValue;
 				}
 
 				_undistortionTex.SetPixel(i, 0, new Color(eyeTanAngleNormalized, eyeTanAngleNormalized, eyeTanAngleNormalized));
 			}
 
 			_undistortionTex.Apply();
+			byte[] bytes = _undistortionTex.EncodeToPNG();
+			File.WriteAllBytes("xx.png", bytes);
 
-			distortionShader.SetFloat("_MaxWorldFovTanAngle", maxWorldFovTanAngle);
+
+			distortionShader.SetFloat("_MaxWorldFovTanAngle", maxDistortedValue);
 		}
 
 		private float GetMaxValue(Fov fov)
