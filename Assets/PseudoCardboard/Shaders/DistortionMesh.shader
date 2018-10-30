@@ -4,8 +4,6 @@
 	{
 		[NoScaleOffset] _MainTex("Texture", 2D) = "white" {}
 		[NoScaleOffset] _UndistortionTex("UndistortionTex", 2D) = "white" {}
-		_DistortionK1("DistortionK1", float) = 0.51
-		_DistortionK2("DistortionK2", float) = 0.16
 		_MaxWorldFovTanAngle("MaxWorldFovTanAngle", float) = 1
 		_ProjectionWorldLeft("ProjectionWorldLeft", Vector) = (0.5, 0.5, 0.5, 0.5)
 		_ProjectionEyeLeft("ProjectionEyeLeft", Vector) = (0.5, 0.5, 0.5, 0.5)
@@ -20,9 +18,6 @@
 				// use "frag" function as the pixel (fragment) shader
 		#pragma fragment frag
 		#include "UnityCG.cginc"
-
-				float _DistortionK1;
-				float _DistortionK2;
 
 				sampler2D _MainTex;
 				sampler2D _UndistortionTex;
@@ -47,45 +42,10 @@
 
 				// Корректировать дисторсию линзы
 				// Нужный график закодирован в 1д-текстуре _UndistortionTex: Цвет = Коррекция(радиус) / радиус
-				float UndistortWithTex(float radius)
+				float Undistort(float radius)
 				{
 					//return radius;
 					return tex2Dlod(_UndistortionTex, float4(radius / _MaxWorldFovTanAngle, 0, 0, 0)).r * radius;
-				}
-
-				float Undistort(float r);
-				float Distort(float r);
-				float GetDistortionFactor(float r2);
-
-				// Корректировать дисторсию линзы
-				// Нужно найти корни многочлена 5-й степени. Сам многочлен описан в методе Distort
-				// Решение находится численным методом.
-				float Undistort(float r)
-				{
-					float r0 = r * 0.9f;
-					float r1 = r / 0.9f;
-					float r2;
-					float dr1 = r - Distort(r1);
-					float dr0;
-					while (abs(r0 - r1) > 0.0001f)
-					{
-						dr0 = r - Distort(r0);
-						r2 = r0 - dr0 * ((r0 - r1) / (dr0 - dr1));
-						r1 = r0;
-						r0 = r2;
-						dr1 = dr0;
-					}
-					return r0;
-				}
-
-				float Distort(float r)
-				{
-					return r * GetDistortionFactor(r*r);
-				}
-
-				float GetDistortionFactor(float r2)
-				{
-					return 1.0 + (_DistortionK1 + _DistortionK2 * r2) * r2;
 				}
 
 				// Полчить из clip-координат ([-1..+1], [-1..+1]) - "экранные" координаты ([0..+1], [0..+1]) с нулём слева вверху, для левой и правой половин 
@@ -133,7 +93,6 @@
 					float undistortionZFactor = radius / radiusUndistorted;
 					//float undistortionZFactor = 1;
 
-
 					float2 eyeClipPos = ViewToClip(viewPos / undistortionZFactor, projectionEye);
 
 					float2 mergedClipPos = MergeClip(eyeClipPos, left);
@@ -149,15 +108,12 @@
 					//o.vertex = float4(mergedClipPos, z, 1);
 					//o.z = radius;
 
-
 					return o;
 				}
 
 				fixed4 frag(v2f i) : SV_Target
 				{
-					//float t = i.z / _MaxWorldFovTanAngle;
-					//return tex2D(_UndistortionTex, float2(t, 0)).r;
-					//return fixed4(t, t, t,1);
+					//return tex2D(_UndistortionTex, float2(i.z / _MaxWorldFovTanAngle, 0)).r * i.z;
 
 					return tex2D(_MainTex, i.uv / i.z);
 				}

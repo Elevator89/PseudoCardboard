@@ -14,7 +14,10 @@
 
 			for (int i = 0; i < x.Length; ++i)
 			{
+				// Значения обратной функции в узлах считается численно
 				_fx[i] = distortion.Undistort(x[i]);
+
+				// Значение производной обратной функции == 1 / производную прямой функции
 				_dfx[i] = 1f / distortion.DistortDerivative(_fx[i]);
 			}
 		}
@@ -35,6 +38,9 @@
 			float t = (x - x0) / (x1 - x0);
 			float t2 = t * t;
 			float t3 = t2 * t;
+
+			// Сплайн Эрмита
+			// https://ru.wikipedia.org/wiki/%D0%A1%D0%BF%D0%BB%D0%B0%D0%B9%D0%BD_%D0%AD%D1%80%D0%BC%D0%B8%D1%82%D0%B0
 
 			return
 				(2f * t3 - 3f * t2 + 1) * fx0

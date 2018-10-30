@@ -25,7 +25,7 @@ namespace Assets.PseudoCardboard
 		private DisplayParameters Display;
 		private HmdParameters Hmd;
 
-		private const int texWidth = 2048;
+		private const int texWidth = 256;
 		private Texture2D _undistortionTex;
 
 		void OnEnable()
@@ -42,7 +42,9 @@ namespace Assets.PseudoCardboard
 			_camWorldRight.transform.localRotation = Quaternion.identity;
 
 			_distortion = new Distortion(Hmd.DistortionK1, Hmd.DistortionK2);
-			_undistortionTex = new Texture2D(texWidth, 1, TextureFormat.RGBAFloat, false, true);
+			_undistortionTex = new Texture2D(texWidth, 1, TextureFormat.RFloat, false, true);
+			_undistortionTex.filterMode = FilterMode.Bilinear;
+			_undistortionTex.wrapMode = TextureWrapMode.Clamp;
 			_undistortionTex.alphaIsTransparency = false;
 		}
 
@@ -62,7 +64,7 @@ namespace Assets.PseudoCardboard
 
 			// FoV шлема
 			Fov hmdMaxFovTanAngles = Fov.AnglesToTanAngles(Hmd.MaxFovAngles);
-			
+
 			// То, как должен видеть левый глаз свой кусок экрана. Без линзы. C учётом размеров дисплея и FoV шлема
 			Fov fovEyeTanAglesLeft = Fov.Min(fovDisplayTanAngles, hmdMaxFovTanAngles);
 
@@ -106,12 +108,9 @@ namespace Assets.PseudoCardboard
 			// Эти "матрицы" упрощённого вида позволяют производить преобразования в обе стороны.
 			// Их использование в шейдере даёт возможность получать нужные "видовые" координаты без использования дополнительных камер и вызовов отрисовки
 
-			distortionShader.SetFloat("_DistortionK1", Hmd.DistortionK1);
-			distortionShader.SetFloat("_DistortionK2", Hmd.DistortionK2);
+			UpdateUndistortionTex(distortionShader, maxWorldFovTanAngle);
 
-
-			UpdateUndistortionTex(distortionShader, maxEyeFovTanAngle);
-
+			distortionShader.SetFloat("_MaxWorldFovTanAngle", maxWorldFovTanAngle);
 			distortionShader.SetTexture("_UndistortionTex", _undistortionTex);
 
 			Vector4 projWorldLine =
@@ -137,44 +136,49 @@ namespace Assets.PseudoCardboard
 			distortionShader.SetVector("_ProjectionEyeLeft", projEyeLine);
 		}
 
-		private void UpdateUndistortionTex(Material distortionShader, float maxArgument)
+		private void UpdateUndistortionTex(Material distortionShader, float maxDistortedValue)
 		{
 			const int n = 16;
 			float[] distortedValues = new float[n];
-			float stepArg = maxArgument / (n - 1);
 
+			float distortedValue = 0f;
+			float distortedValueStep = maxDistortedValue / (n - 1);
+
+			// Генерируется n точек
 			for (int i = 0; i < n; i++)
 			{
-				float argument = i * stepArg;
-				distortedValues[i] = _distortion.Distort(argument);
+				distortedValues[i] = distortedValue;
+				distortedValue += distortedValueStep;
 			}
 
-			float maxDistortedValue = distortedValues[n - 1];
-
+			// Составляется кубический сплайн по n точкам. Сплайн используется для интерполяции функции, обратной к дисторсии
 			CubicHermiteSpline spline = new CubicHermiteSpline(_distortion, distortedValues);
 
+			distortedValue = 0f;
+			distortedValueStep = maxDistortedValue / (texWidth - 1);
+
+			// Точно известно, что функция дисторсии принимает значения больше своего аргумента
+			// Следовательно обратная функция будет всегда меньше аргумента. Это значит, что значение обратной ф-ции можно нормировать.
+			// Для каждой точки текстуры вычисляется значение сплайна в точке, после чего делится на значение самой точки. Получается число от [0..1], оно записывается в цвет.
 			for (int i = 0; i < _undistortionTex.width; ++i)
 			{
 				float eyeTanAngleNormalized = 1f;
 
 				if (i > 0)
 				{
-					float distortedValue = maxDistortedValue * (float)i / texWidth;
 					float undistortedValue = spline.GetValue(distortedValue);
 
-					if (distortedValue < undistortedValue)
-						eyeTanAngleNormalized = distortedValue / undistortedValue;
+					// Страховка от отклонений сплайна
+					if (undistortedValue < distortedValue)
+						eyeTanAngleNormalized = undistortedValue / distortedValue;
 				}
 
-				_undistortionTex.SetPixel(i, 0, new Color(eyeTanAngleNormalized, eyeTanAngleNormalized, eyeTanAngleNormalized));
+				_undistortionTex.SetPixel(i, 0, new Color(eyeTanAngleNormalized, 0f, 0f));
+
+				distortedValue += distortedValueStep;
 			}
 
 			_undistortionTex.Apply();
-			byte[] bytes = _undistortionTex.EncodeToPNG();
-			File.WriteAllBytes("xx.png", bytes);
-
-
-			distortionShader.SetFloat("_MaxWorldFovTanAngle", maxDistortedValue);
 		}
 
 		private float GetMaxValue(Fov fov)
