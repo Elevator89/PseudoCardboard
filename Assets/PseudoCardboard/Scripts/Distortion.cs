@@ -59,7 +59,7 @@ namespace Assets.PseudoCardboard
 		{
 			float r2 = r * r;
 			float r4 = r2 * r2;
-			return 5f + DistortionK2 * r4 + 3f * DistortionK1 * r2 + 1;
+			return 5f * DistortionK2 * r4 + 3f * DistortionK1 * r2 + 1;
 		}
 	}
 }
