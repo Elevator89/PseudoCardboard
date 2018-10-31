@@ -15,11 +15,17 @@
 */
 
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace Assets.PseudoCardboard
 {
     public class HmdParameters
     {
+        [System.Serializable]
+        public class HmdParametersChangedEvent : UnityEvent<HmdParameters>
+        {
+        }
+
         private static HmdParameters _instance = null;
 
         private const string DistortionK1FieldName = "Hmd.DistortionK1";
@@ -62,15 +68,80 @@ namespace Assets.PseudoCardboard
             }
         }
 
-        public float DistortionK1;
-        public float DistortionK2;
-        public float InterlensDistance;
-        public float ScreenToLensDist;
-        public float EyeOffsetY;
-        public Fov MaxFovAngles;
+        private float _distortionK1;
+        private float _distortionK2;
+        private float _interlensDistance;
+        private float _screenToLensDist;
+        private float _eyeOffsetY;
+        private Fov _maxFovAngles;
+
+        public HmdParametersChangedEvent ParamsChanged;
+
+        public float DistortionK1
+        {
+            get { return _distortionK1; }
+            set
+            {
+                _distortionK1 = value;
+                ParamsChanged.Invoke(this);
+            }
+        }
+
+        public float DistortionK2
+        {
+            get { return _distortionK2; }
+            set
+            {
+                _distortionK2 = value;
+                ParamsChanged.Invoke(this);
+            }
+        }
+
+        public float InterlensDistance
+        {
+            get { return _interlensDistance; }
+            set
+            {
+                _interlensDistance = value;
+                ParamsChanged.Invoke(this);
+            }
+        }
+
+        public float ScreenToLensDist
+        {
+            get { return _screenToLensDist; }
+            set
+            {
+                _screenToLensDist = value;
+                ParamsChanged.Invoke(this);
+            }
+        }
+
+        public float EyeOffsetY
+        {
+            get { return _eyeOffsetY; }
+            set
+            {
+                _eyeOffsetY = value;
+                ParamsChanged.Invoke(this);
+            }
+        }
+
+        public Fov MaxFovAngles
+        {
+            get { return _maxFovAngles; }
+            set
+            {
+                _maxFovAngles = value;
+                ParamsChanged.Invoke(this);
+            }
+        }
 
         private HmdParameters()
-        { }
+        {
+            if (ParamsChanged == null)
+                ParamsChanged = new HmdParametersChangedEvent();
+        }
 
         public void SaveToPrefs()
         {

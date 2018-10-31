@@ -45,14 +45,11 @@ namespace Assets.PseudoCardboard.Scripts
         [SerializeField]
         private Camera _camEyeRight;
 
-        private Distortion _distortion;
-        private DisplayParameters Display;
-        private HmdParameters Hmd;
+        private DisplayParameters _display;
 
         void OnEnable()
         {
-            Hmd = HmdParameters.Instance;
-            Display = new DisplayParameters();
+            _display = new DisplayParameters();
 
             _camWorldLeft.transform.localRotation = Quaternion.identity;
             _camWorldRight.transform.localRotation = Quaternion.identity;
@@ -63,31 +60,39 @@ namespace Assets.PseudoCardboard.Scripts
             _camEyeLeft.transform.localRotation = Quaternion.identity;
             _camEyeRight.transform.localRotation = Quaternion.identity;
 
-            _distortion = new Distortion(Hmd.DistortionK1, Hmd.DistortionK2);
+            OnHmdParamsChanged(HmdParameters.Instance);
+
+            HmdParameters.Instance.ParamsChanged.AddListener(OnHmdParamsChanged);
         }
 
-        void Update()
+        void OnDisable()
         {
-            _distortion.DistortionK1 = Hmd.DistortionK1;
-            _distortion.DistortionK2 = Hmd.DistortionK2;
+            HmdParameters.Instance.ParamsChanged.RemoveListener(OnHmdParamsChanged);
+        }
+
+        void OnHmdParamsChanged(HmdParameters hmd)
+        {
+            Distortion distortion = new Distortion(hmd.DistortionK1, hmd.DistortionK2);
+
+            distortion.DistortionK1 = hmd.DistortionK1;
+            distortion.DistortionK2 = hmd.DistortionK2;
 
             float zNear = _camWorldLeft.nearClipPlane;
             float zFar = _camWorldLeft.farClipPlane;
 
-			Fov displayDistancesLeft = Calculator.GetFovDistancesLeft(Display, Hmd);
-			Rect displayViewportLeft = Calculator.GetViewportLeft(displayDistancesLeft, Display.Dpm);
+			Fov displayDistancesLeft = Calculator.GetFovDistancesLeft(_display, hmd);
 
 			// То, как должен видеть левый глаз свой кусок экрана. Без линзы. C учётом только размеров дисплея
-			Fov fovDisplayTanAngles = displayDistancesLeft / Hmd.ScreenToLensDist;
+			Fov fovDisplayTanAngles = displayDistancesLeft / hmd.ScreenToLensDist;
 
 			// FoV шлема
-			Fov hmdMaxFovTanAngles = Fov.AnglesToTanAngles(Hmd.MaxFovAngles);
+			Fov hmdMaxFovTanAngles = Fov.AnglesToTanAngles(hmd.MaxFovAngles);
 
 			// То, как должен видеть левый глаз свой кусок экрана. Без линзы. C учётом размеров дисплея и FoV шлема
 			Fov fovEyeTanAglesLeft = Fov.Min(fovDisplayTanAngles, hmdMaxFovTanAngles);
 
 			// То, как должен видеть левый глаз. Мнимое изображение (после увеличения идеальной линзой без искажений). С широким углом. Именно так надо снять сцену
-			Fov fovWorldTanAnglesLeft = Calculator.DistortTanAngles(fovEyeTanAglesLeft, _distortion);
+			Fov fovWorldTanAnglesLeft = Calculator.DistortTanAngles(fovEyeTanAglesLeft, distortion);
 
 			Matrix4x4 projWorldLeft;
 			Matrix4x4 projWorldRight;
@@ -97,11 +102,11 @@ namespace Assets.PseudoCardboard.Scripts
 			Matrix4x4 projEyeRight;
 			Calculator.ComposeProjectionMatricesFromFovTanAngles(fovDisplayTanAngles, zNear, zFar, out projEyeLeft, out projEyeRight);
 
-			_camWorldLeft.transform.localPosition = 0.5f * Vector3.left * Hmd.InterlensDistance;
-            _camWorldRight.transform.localPosition = 0.5f * Vector3.right * Hmd.InterlensDistance;
+			_camWorldLeft.transform.localPosition = 0.5f * Vector3.left * hmd.InterlensDistance;
+            _camWorldRight.transform.localPosition = 0.5f * Vector3.right * hmd.InterlensDistance;
 
-            _camEyeLeft.transform.localPosition = 0.5f * Vector3.left * Hmd.InterlensDistance;
-            _camEyeRight.transform.localPosition = 0.5f * Vector3.right * Hmd.InterlensDistance;
+            _camEyeLeft.transform.localPosition = 0.5f * Vector3.left * hmd.InterlensDistance;
+            _camEyeRight.transform.localPosition = 0.5f * Vector3.right * hmd.InterlensDistance;
 
             _camWorldLeft.projectionMatrix = projWorldLeft;
             _camWorldRight.projectionMatrix = projWorldRight;
@@ -112,11 +117,11 @@ namespace Assets.PseudoCardboard.Scripts
             _camEyeLeft.projectionMatrix = projEyeLeft;
             _camEyeRight.projectionMatrix = projEyeRight;
 
-            EyeMaterialLeft.SetFloat("_DistortionK1", Hmd.DistortionK1);
-            EyeMaterialRight.SetFloat("_DistortionK1", Hmd.DistortionK1);
+            EyeMaterialLeft.SetFloat("_DistortionK1", hmd.DistortionK1);
+            EyeMaterialRight.SetFloat("_DistortionK1", hmd.DistortionK1);
 
-            EyeMaterialLeft.SetFloat("_DistortionK2", Hmd.DistortionK2);
-            EyeMaterialRight.SetFloat("_DistortionK2", Hmd.DistortionK2);
+            EyeMaterialLeft.SetFloat("_DistortionK2", hmd.DistortionK2);
+            EyeMaterialRight.SetFloat("_DistortionK2", hmd.DistortionK2);
         }
     }
 }

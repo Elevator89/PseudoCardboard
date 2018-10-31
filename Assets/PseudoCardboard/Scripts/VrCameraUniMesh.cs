@@ -14,7 +14,6 @@
  * limitations under the License.
 */
 
-using System.IO;
 using System.Linq;
 using UnityEngine;
 
@@ -32,24 +31,18 @@ namespace Assets.PseudoCardboard
 	{
 		public Material EyeMaterial;
 
-		private Camera _centralCam;
-
 		private Camera _camWorldLeft;
 		private Camera _camWorldRight;
 
 		private Distortion _distortion;
-		private DisplayParameters Display;
-		private HmdParameters Hmd;
+		private DisplayParameters _display;
 
 		private const int texWidth = 256;
 		private Texture2D _undistortionTex;
 
 		void OnEnable()
 		{
-			Hmd = HmdParameters.Instance;
-			Display = new DisplayParameters();
-
-			_centralCam = GetComponent<Camera>();
+			_display = new DisplayParameters();
 
 			_camWorldLeft = GetComponentsInChildren<Camera>().First(cam => cam.stereoTargetEye == StereoTargetEyeMask.Left);
 			_camWorldRight = GetComponentsInChildren<Camera>().First(cam => cam.stereoTargetEye == StereoTargetEyeMask.Right);
@@ -57,29 +50,39 @@ namespace Assets.PseudoCardboard
 			_camWorldLeft.transform.localRotation = Quaternion.identity;
 			_camWorldRight.transform.localRotation = Quaternion.identity;
 
-			_distortion = new Distortion(Hmd.DistortionK1, Hmd.DistortionK2);
+			_distortion = new Distortion(HmdParameters.Instance.DistortionK1, HmdParameters.Instance.DistortionK2);
 			_undistortionTex = new Texture2D(texWidth, 1, TextureFormat.RFloat, false, true);
 			_undistortionTex.filterMode = FilterMode.Bilinear;
 			_undistortionTex.wrapMode = TextureWrapMode.Clamp;
 			_undistortionTex.alphaIsTransparency = false;
-		}
 
-		void Update()
+            OnHmdParamsChanged(HmdParameters.Instance);
+
+            HmdParameters.Instance.ParamsChanged.AddListener(OnHmdParamsChanged);
+        }
+
+	    void OnDisable()
+	    {
+            HmdParameters.Instance.ParamsChanged.RemoveListener(OnHmdParamsChanged);
+            DestroyImmediate(_undistortionTex);
+        }
+
+		void OnHmdParamsChanged(HmdParameters hmd)
 		{
-			_distortion.DistortionK1 = Hmd.DistortionK1;
-			_distortion.DistortionK2 = Hmd.DistortionK2;
+			_distortion.DistortionK1 = hmd.DistortionK1;
+			_distortion.DistortionK2 = hmd.DistortionK2;
 
 			float zNear = _camWorldLeft.nearClipPlane;
 			float zFar = _camWorldLeft.farClipPlane;
 
-			Fov displayDistancesLeft = Calculator.GetFovDistancesLeft(Display, Hmd);
-			Rect displayViewportLeft = Calculator.GetViewportLeft(displayDistancesLeft, Display.Dpm);
+			Fov displayDistancesLeft = Calculator.GetFovDistancesLeft(_display, hmd);
+			Rect displayViewportLeft = Calculator.GetViewportLeft(displayDistancesLeft, _display.Dpm);
 
 			// То, как должен видеть левый глаз свой кусок экрана. Без линзы. C учётом только размеров дисплея
-			Fov fovDisplayTanAngles = displayDistancesLeft / Hmd.ScreenToLensDist;
+			Fov fovDisplayTanAngles = displayDistancesLeft / hmd.ScreenToLensDist;
 
 			// FoV шлема
-			Fov hmdMaxFovTanAngles = Fov.AnglesToTanAngles(Hmd.MaxFovAngles);
+			Fov hmdMaxFovTanAngles = Fov.AnglesToTanAngles(hmd.MaxFovAngles);
 
 			// То, как должен видеть левый глаз свой кусок экрана. Без линзы. C учётом размеров дисплея и FoV шлема
 			Fov fovEyeTanAglesLeft = Fov.Min(fovDisplayTanAngles, hmdMaxFovTanAngles);
@@ -95,20 +98,19 @@ namespace Assets.PseudoCardboard
 			Matrix4x4 projEyeRight;
 			Calculator.ComposeProjectionMatricesFromFovTanAngles(fovDisplayTanAngles, zNear, zFar, out projEyeLeft, out projEyeRight);
 
-			_camWorldLeft.transform.localPosition = 0.5f * Vector3.left * Hmd.InterlensDistance;
-			_camWorldRight.transform.localPosition = 0.5f * Vector3.right * Hmd.InterlensDistance;
+			_camWorldLeft.transform.localPosition = 0.5f * Vector3.left * hmd.InterlensDistance;
+			_camWorldRight.transform.localPosition = 0.5f * Vector3.right * hmd.InterlensDistance;
 
 			_camWorldLeft.projectionMatrix = projWorldLeft;
 			_camWorldRight.projectionMatrix = projWorldRight;
 
-			float maxEyeFovTanAngle = GetMaxValue(fovEyeTanAglesLeft);
 			float maxWorldFovTanAngle = GetMaxValue(fovWorldTanAnglesLeft);
 
-			UpdateBarrelDistortion(EyeMaterial, maxEyeFovTanAngle, maxWorldFovTanAngle, displayViewportLeft, projWorldLeft, projEyeLeft);
+			UpdateShader(EyeMaterial, maxWorldFovTanAngle, displayViewportLeft, projWorldLeft, projEyeLeft);
 		}
 
 		// Set barrel_distortion parameters given CardboardView.
-		private void UpdateBarrelDistortion(Material distortionShader, float maxEyeFovTanAngle, float maxWorldFovTanAngle, Rect viewportEyeLeft, Matrix4x4 projWorldLeft, Matrix4x4 projEyeLeft)
+		private void UpdateShader(Material distortionShader, float maxWorldFovTanAngle, Rect viewportEyeLeft, Matrix4x4 projWorldLeft, Matrix4x4 projEyeLeft)
 		{
 			// Код заимствует некоторые детали реализации генератора профиля Google Cardboard https://vr.google.com/intl/ru_ru/cardboard/viewerprofilegenerator/
 			// Оригинальный комментарий:
@@ -124,7 +126,7 @@ namespace Assets.PseudoCardboard
 			// Эти "матрицы" упрощённого вида позволяют производить преобразования в обе стороны.
 			// Их использование в шейдере даёт возможность получать нужные "видовые" координаты без использования дополнительных камер и вызовов отрисовки
 
-			UpdateUndistortionTex(distortionShader, maxWorldFovTanAngle);
+			UpdateUndistortionTex(maxWorldFovTanAngle);
 
 			distortionShader.SetFloat("_MaxWorldFovTanAngle", maxWorldFovTanAngle);
 			distortionShader.SetTexture("_UndistortionTex", _undistortionTex);
@@ -136,10 +138,10 @@ namespace Assets.PseudoCardboard
 					projWorldLeft[0, 2] - 1,
 					projWorldLeft[1, 2] - 1) / 2.0f;
 
-			var x_scale = viewportEyeLeft.width / (0.5f * Display.Resolution.x);
-			var y_scale = viewportEyeLeft.height / Display.Resolution.y;
-			var x_trans = 2 * (viewportEyeLeft.x + 0.5f * viewportEyeLeft.width) / (0.5f * Display.Resolution.x) - 1;
-			var y_trans = 2 * (viewportEyeLeft.y + 0.5f * viewportEyeLeft.height) / Display.Resolution.y - 1;
+			var x_scale = viewportEyeLeft.width / (0.5f * _display.Resolution.x);
+			var y_scale = viewportEyeLeft.height / _display.Resolution.y;
+			var x_trans = 2 * (viewportEyeLeft.x + 0.5f * viewportEyeLeft.width) / (0.5f * _display.Resolution.x) - 1;
+			var y_trans = 2 * (viewportEyeLeft.y + 0.5f * viewportEyeLeft.height) / _display.Resolution.y - 1;
 
 			Vector4 projEyeLine =
 				new Vector4(
@@ -152,7 +154,7 @@ namespace Assets.PseudoCardboard
 			distortionShader.SetVector("_ProjectionEyeLeft", projEyeLine);
 		}
 
-		private void UpdateUndistortionTex(Material distortionShader, float maxDistortedValue)
+		private void UpdateUndistortionTex(float maxDistortedValue)
 		{
 			const int n = 16;
 			float[] distortedValues = new float[n];
