@@ -11,7 +11,7 @@ namespace Assets.Scripts
 
         void OnEnable()
         {
-            DisplayParameters displayParameters = new DisplayParameters();
+            DisplayParameters displayParameters = DisplayParameters.Collect();
 
             GetComponent<RectTransform>().localScale = 
                 new Vector3(

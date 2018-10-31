@@ -45,13 +45,14 @@ namespace Assets.PseudoCardboard.Scripts
         [SerializeField]
         private Camera _camEyeRight;
 
-        private DisplayParameters _display;
+		private bool _hmdParamsDirty = true;
+		private DisplayParameters _display;
 
         void OnEnable()
         {
-            _display = new DisplayParameters();
+			_display = null;
 
-            _camWorldLeft.transform.localRotation = Quaternion.identity;
+			_camWorldLeft.transform.localRotation = Quaternion.identity;
             _camWorldRight.transform.localRotation = Quaternion.identity;
 
             _camWorldLeftScaler = _camWorldLeft.GetComponentInChildren<FovScaler>();
@@ -70,8 +71,25 @@ namespace Assets.PseudoCardboard.Scripts
             HmdParameters.Instance.ParamsChanged.RemoveListener(OnHmdParamsChanged);
         }
 
-        void OnHmdParamsChanged(HmdParameters hmd)
-        {
+		void OnHmdParamsChanged(HmdParameters hmd)
+		{
+			_hmdParamsDirty = true;
+		}
+
+		void Update()
+		{
+			DisplayParameters newDisplay = DisplayParameters.Collect();
+
+			if (_hmdParamsDirty || !newDisplay.Equals(_display))
+			{
+				UpdateViewAndMaterialParameters(HmdParameters.Instance, newDisplay);
+				_hmdParamsDirty = false;
+				_display = newDisplay;
+			}
+		}
+
+		void UpdateViewAndMaterialParameters(HmdParameters hmd, DisplayParameters display)
+		{
             Distortion distortion = new Distortion(hmd.DistortionK1, hmd.DistortionK2);
 
             distortion.DistortionK1 = hmd.DistortionK1;
@@ -80,7 +98,7 @@ namespace Assets.PseudoCardboard.Scripts
             float zNear = _camWorldLeft.nearClipPlane;
             float zFar = _camWorldLeft.farClipPlane;
 
-			Fov displayDistancesLeft = Calculator.GetFovDistancesLeft(_display, hmd);
+			Fov displayDistancesLeft = Calculator.GetFovDistancesLeft(display, hmd);
 
 			// То, как должен видеть левый глаз свой кусок экрана. Без линзы. C учётом только размеров дисплея
 			Fov fovDisplayTanAngles = displayDistancesLeft / hmd.ScreenToLensDist;

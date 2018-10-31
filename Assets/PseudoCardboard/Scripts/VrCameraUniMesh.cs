@@ -39,8 +39,12 @@ namespace Assets.PseudoCardboard
 
 		private bool _hmdParamsDirty = true;
 
+		private DisplayParameters _display;
+
 		void OnEnable()
 		{
+			_display = null;
+
 			_camWorldLeft = GetComponentsInChildren<Camera>().First(cam => cam.stereoTargetEye == StereoTargetEyeMask.Left);
 			_camWorldRight = GetComponentsInChildren<Camera>().First(cam => cam.stereoTargetEye == StereoTargetEyeMask.Right);
 
@@ -51,8 +55,6 @@ namespace Assets.PseudoCardboard
 			_undistortionTex.filterMode = FilterMode.Bilinear;
 			_undistortionTex.wrapMode = TextureWrapMode.Clamp;
 			_undistortionTex.alphaIsTransparency = false;
-
-			OnHmdParamsChanged(HmdParameters.Instance);
 
 			HmdParameters.Instance.ParamsChanged.AddListener(OnHmdParamsChanged);
 		}
@@ -70,13 +72,19 @@ namespace Assets.PseudoCardboard
 
 		void Update()
 		{
-			UpdateViewAndMaterialParameters(HmdParameters.Instance, new DisplayParameters());
-			_hmdParamsDirty = false;
+			DisplayParameters newDisplay = DisplayParameters.Collect();
+
+			if (_hmdParamsDirty || !newDisplay.Equals(_display))
+			{
+				UpdateView(HmdParameters.Instance, newDisplay);
+				_hmdParamsDirty = false;
+				_display = newDisplay;
+			}
 		}
 
-		void UpdateViewAndMaterialParameters(HmdParameters hmd, DisplayParameters display)
+		void UpdateView(HmdParameters hmd, DisplayParameters display)
 		{
-			Distortion distortion = new Distortion(HmdParameters.Instance.DistortionK1, HmdParameters.Instance.DistortionK2);
+			Distortion distortion = new Distortion(hmd.DistortionK1, hmd.DistortionK2);
 
 			float zNear = _camWorldLeft.nearClipPlane;
 			float zFar = _camWorldLeft.farClipPlane;
@@ -166,6 +174,20 @@ namespace Assets.PseudoCardboard
 
 		private Vector4 ComposeProjectionVector(Matrix4x4 projectionMatrix)
 		{
+			// Код заимствует некоторые детали реализации генератора профиля Google Cardboard https://vr.google.com/intl/ru_ru/cardboard/viewerprofilegenerator/
+			// Оригинальный комментарий:
+			// Shader params include parts of the projection matrices needed to
+			// convert texture coordinates between distorted and undistorted
+			// frustums.  The projections are adjusted to include transform between
+			// texture space [0..1] and NDC [-1..1] as well as accounting for the
+			// viewport on the screen.
+
+			// Даны две проекционные матрицы, соответствующие полю зрения левого глаза в виртуальном (то что в игровой сцене) и реальном (внутри HMD, как если бы не было линз) мирах
+			// Из компонент масштаба и переноса этих матриц составляются векторы, 
+			// при этом в них вносятся поправки на пересчёт координат между диапазонами [0..1] и [-1..1], с учётом разбиения экрана.
+			// Эти "матрицы" упрощённого вида позволяют производить преобразования в обе стороны.
+			// Их использование в шейдере даёт возможность получать нужные "видовые" координаты без использования дополнительных камер и вызовов отрисовки
+
 			return new Vector4(
 				projectionMatrix[0, 0],
 				projectionMatrix[1, 1],
