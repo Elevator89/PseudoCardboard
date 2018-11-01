@@ -70,7 +70,7 @@ Material:
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
-    - _MaxWorldFovTanAngle: 2.6165428
+    - _MaxWorldFovTanAngle: 3.0466795
     - _Metallic: 0
     - _Mode: 0
     - _OcclusionStrength: 1
@@ -83,7 +83,7 @@ Material:
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _ProjectionEyeLeft: {r: 0.7766152, g: 0.2820543, b: -0.43911123, a: -0.21937555}
+    - _ProjectionEyeLeft: {r: 0.56598586, g: 0.31969687, b: -0.5912325, a: -0.24865314}
     - _ProjectionLeft: {r: -0.000000043711392, g: -0.000000043711395, b: -1, a: 0.000000059604645}
-    - _ProjectionWorldLeft: {r: 0.6201023, g: 0.28547734, b: -0.41351599, a: -0.30354148}
+    - _ProjectionWorldLeft: {r: 0.3609139, g: 0.28547734, b: -0.65865266, a: -0.30354148}
     - _UnprojectionLeft: {r: 0.00043195515, g: 0.00020055425, b: -0.999688, a: -0.00015598536}

@@ -52,7 +52,6 @@ namespace Assets.PseudoCardboard
             float zFar = _leftWorldCam.farClipPlane;
 
 			Fov displayDistancesLeft = Calculator.GetFovDistancesLeft(display, hmd);
-			Rect displayViewportLeft = Calculator.GetViewportLeft(displayDistancesLeft, display.Dpm);
 
 			// То, как должен видеть левый глаз свой кусок экрана. Без линзы. C учётом только размеров дисплея
 			Fov fovDisplayTanAngles = displayDistancesLeft / hmd.ScreenToLensDist;

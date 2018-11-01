@@ -51,10 +51,9 @@ namespace Assets.PseudoCardboard
 			_camWorldLeft.transform.localRotation = Quaternion.identity;
 			_camWorldRight.transform.localRotation = Quaternion.identity;
 
-			_undistortionTex = new Texture2D(texWidth, 1, TextureFormat.RFloat, false, true);
+			_undistortionTex = new Texture2D(texWidth, 1, TextureFormat.RGB24, false, true);
 			_undistortionTex.filterMode = FilterMode.Bilinear;
 			_undistortionTex.wrapMode = TextureWrapMode.Clamp;
-			_undistortionTex.alphaIsTransparency = false;
 
 			HmdParameters.Instance.ParamsChanged.AddListener(OnHmdParamsChanged);
 		}
@@ -74,12 +73,9 @@ namespace Assets.PseudoCardboard
 		{
 			DisplayParameters newDisplay = DisplayParameters.Collect();
 
-			if (_hmdParamsDirty || !newDisplay.Equals(_display))
-			{
-				UpdateView(HmdParameters.Instance, newDisplay);
-				_hmdParamsDirty = false;
-				_display = newDisplay;
-			}
+			UpdateView(HmdParameters.Instance, newDisplay);
+			_hmdParamsDirty = false;
+			_display = newDisplay;
 		}
 
 		void UpdateView(HmdParameters hmd, DisplayParameters display)
